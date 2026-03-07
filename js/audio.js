@@ -84,6 +84,17 @@ export function playNewQuestion() {
   });
 }
 
+/** Sad trombone "wah-wah" when neither team answers correctly */
+export function playNoAnswer() {
+  if (_muted) return;
+  withRunningCtx(ctx => {
+    const t = ctx.currentTime;
+    [311, 277, 233, 196].forEach((freq, i) => {
+      tone(ctx, freq, t + i * 0.18, 0.32, 'sawtooth', 0.18);
+    });
+  });
+}
+
 /** Upward chime when a point is awarded */
 export function playPointAwarded() {
   if (_muted) return;

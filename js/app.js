@@ -8,7 +8,7 @@ import {
 } from './ui.js';
 import {
   unlockAudio, playGameStart, playTimerTick, playTimeUp,
-  playNewQuestion, playPointAwarded, startLobbyMusic, startGameMusic, stopBackgroundMusic,
+  playNewQuestion, playPointAwarded, playNoAnswer, startLobbyMusic, startGameMusic, stopBackgroundMusic,
   toggleMute
 } from './audio.js';
 
@@ -160,6 +160,7 @@ function handleAward(teamIndex) {
   awardPoint(teamIndex);
   renderScoreboard();
   if (teamIndex !== null) playPointAwarded();
+  else playNoAnswer();
 
   setTimeout(() => {
     const nextIndex = state.currentIndex + 1;
