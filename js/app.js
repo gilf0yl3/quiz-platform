@@ -128,7 +128,7 @@ function startGame() {
 
 function loadQuestion(index) {
   stopTimer();
-  playNewQuestion();
+  if (index > 0) playNewQuestion();
   renderQuestion(index);
   renderScoreboard();
   setPhase('idle');

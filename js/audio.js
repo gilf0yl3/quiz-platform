@@ -76,8 +76,8 @@ export function playNewQuestion() {
   if (_muted) return;
   withRunningCtx(ctx => {
     const t = ctx.currentTime;
-    tone(ctx, 880, t,        0.12, 'sine', 0.2);
-    tone(ctx, 1318.5, t + 0.14, 0.18, 'sine', 0.18);
+    tone(ctx, 880,    t,        0.35, 'sine', 0.3);
+    tone(ctx, 1318.5, t + 0.28, 0.45, 'sine', 0.28);
   });
 }
 
