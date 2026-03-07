@@ -1,5 +1,5 @@
 import { questions as allQuestions } from './data.js';
-import { state, resetState, awardPoint, awardBoth } from './state.js';
+import { state, resetState, awardPoint } from './state.js';
 import { startTimer, stopTimer } from './timer.js';
 import {
   showScreen, setPhase,
@@ -7,7 +7,7 @@ import {
   updateTimerDisplay, renderResults
 } from './ui.js';
 import {
-  unlockAudio, playClick, playGameStart, playTimerTick, playTimeUp,
+  unlockAudio, playGameStart, playTimerTick, playTimeUp,
   playPointAwarded, startBackgroundMusic, stopBackgroundMusic,
   toggleMute
 } from './audio.js';
@@ -37,8 +37,6 @@ function initWelcome() {
   input.addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
 
   nextBtn.addEventListener('click', () => {
-    unlockAudio();
-    playClick();
     splitTeams();
     showScreen('teams');
   });
@@ -156,24 +154,6 @@ function handleReveal() {
   setPhase('revealed');
 }
 
-function handleAwardBoth() {
-  awardBoth();
-  renderScoreboard();
-  playPointAwarded();
-
-  setTimeout(() => {
-    const nextIndex = state.currentIndex + 1;
-    if (nextIndex >= state.questions.length) {
-      stopBackgroundMusic();
-      showScreen('results');
-      renderResults();
-    } else {
-      state.currentIndex = nextIndex;
-      loadQuestion(state.currentIndex);
-    }
-  }, 1200);
-}
-
 function handleAward(teamIndex) {
   awardPoint(teamIndex);
   renderScoreboard();
@@ -216,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-start-timer').addEventListener('click', handleStartTimer);
   document.getElementById('btn-reveal').addEventListener('click', handleReveal);
   document.getElementById('award-btn-0').addEventListener('click', () => handleAward(0));
-  document.getElementById('award-btn-both').addEventListener('click', handleAwardBoth);
   document.getElementById('award-btn-1').addEventListener('click', () => handleAward(1));
   document.getElementById('award-btn-none').addEventListener('click', () => handleAward(null));
   document.getElementById('btn-new-game').addEventListener('click', handleNewGame);

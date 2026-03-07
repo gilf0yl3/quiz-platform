@@ -22,9 +22,3 @@ export function awardPoint(teamIndex) {
   }
   state.history[state.currentIndex].scoredBy = teamIndex;
 }
-
-export function awardBoth() {
-  state.teams[0].score += 1;
-  state.teams[1].score += 1;
-  state.history[state.currentIndex].scoredBy = 'both';
-}
