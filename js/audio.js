@@ -95,61 +95,84 @@ function stopMusicLoop() {
   }
 }
 
-// — Lobby music: upbeat bouncy melody for welcome & team screens —
+// — Lobby music: upbeat bouncy chiptune for welcome & team screens —
 
-const LOBBY_MELODY = [
-  // Each step: [freq, duration, wave, vol]
-  [523.3, 0.18, 'triangle', 0.12],  // C5
-  [587.3, 0.18, 'triangle', 0.10],  // D5
-  [659.3, 0.18, 'triangle', 0.12],  // E5
-  [784.0, 0.28, 'triangle', 0.14],  // G5
-  [659.3, 0.18, 'triangle', 0.10],  // E5
-  [784.0, 0.28, 'triangle', 0.14],  // G5
-  [880.0, 0.35, 'triangle', 0.12],  // A5
-  [784.0, 0.28, 'triangle', 0.10],  // G5
-  [659.3, 0.18, 'triangle', 0.12],  // E5
-  [587.3, 0.18, 'triangle', 0.10],  // D5
-  [523.3, 0.35, 'triangle', 0.14],  // C5
-  [440.0, 0.18, 'triangle', 0.10],  // A4
-  [523.3, 0.28, 'triangle', 0.12],  // C5
-  [587.3, 0.35, 'triangle', 0.14],  // D5
-  [523.3, 0.28, 'triangle', 0.10],  // C5
-  [440.0, 0.35, 'triangle', 0.12],  // A4
+// Kick drum: short noise burst at low frequency
+function kick(ctx, t) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(180, t);
+  osc.frequency.exponentialRampToValueAtTime(40, t + 0.06);
+  gain.gain.setValueAtTime(0.4, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  osc.start(t);
+  osc.stop(t + 0.15);
+}
+
+// Snare: noise-like burst
+function snare(ctx, t) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  src.buffer = buf;
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  filter.type = 'bandpass';
+  filter.frequency.value = 2000;
+  gain.gain.setValueAtTime(0.18, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+  src.start(t);
+}
+
+// Bright staccato melody — C major pentatonic, two octaves up from game music
+const LOBBY_SEQ = [
+  1046.5,  // C6
+  1174.7,  // D6
+  1318.5,  // E6
+  1568.0,  // G6
+  1318.5,  // E6
+  1568.0,  // G6
+  1760.0,  // A6
+  1568.0,  // G6
+  1046.5,  // C6
+  1318.5,  // E6
+  1174.7,  // D6
+  1046.5,  // C6
 ];
 
-const LOBBY_BASS = [
-  [130.8, 0.6, 'sine', 0.08],   // C3
-  [110.0, 0.6, 'sine', 0.08],   // A2
-  [146.8, 0.6, 'sine', 0.08],   // D3
-  [164.8, 0.6, 'sine', 0.08],   // E3
-];
+const STEP = 0.2;   // seconds per beat (~300 BPM feel)
 
 export function startLobbyMusic() {
   if (_musicPlaying && _currentTrack === 'lobby') return;
   stopMusicLoop();
   _musicPlaying = true;
   _currentTrack = 'lobby';
-  let melodyIdx = 0;
-  let bassIdx = 0;
-  let beatCount = 0;
+  let step = 0;
 
   function next() {
     if (!_musicPlaying || _currentTrack !== 'lobby') return;
     withRunningCtx(ctx => {
       const t = ctx.currentTime;
-      // melody note
-      const m = LOBBY_MELODY[melodyIdx % LOBBY_MELODY.length];
-      tone(ctx, m[0], t, m[1], m[2], m[3]);
-      melodyIdx++;
-      // bass note every 4 beats
-      if (beatCount % 4 === 0) {
-        const b = LOBBY_BASS[bassIdx % LOBBY_BASS.length];
-        tone(ctx, b[0], t, b[1], b[2], b[3]);
-        bassIdx++;
-      }
-      beatCount++;
+      const beat = step % 8;
+
+      // Drums: kick on 0,4 — snare on 2,6
+      if (beat === 0 || beat === 4) kick(ctx, t);
+      if (beat === 2 || beat === 6) snare(ctx, t);
+
+      // Melody note (short, staccato)
+      const freq = LOBBY_SEQ[step % LOBBY_SEQ.length];
+      tone(ctx, freq, t, 0.12, 'square', 0.08);
+
+      step++;
     });
-    _musicLoop = setTimeout(next, 280);  // fast tempo ~214 BPM
+    _musicLoop = setTimeout(next, STEP * 1000);
   }
 
   next();
