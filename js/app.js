@@ -8,7 +8,7 @@ import {
 } from './ui.js';
 import {
   unlockAudio, playGameStart, playTimerStart, playTimerTick, playTimeUp,
-  playNewQuestion, playPointAwarded, playNoAnswer, startLobbyMusic, startGameMusic, stopBackgroundMusic,
+  playReveal, playNewQuestion, playPointAwarded, playNoAnswer, startLobbyMusic, startGameMusic, stopBackgroundMusic,
   toggleMute
 } from './audio.js';
 
@@ -153,6 +153,7 @@ function handleStartTimer() {
 
 function handleReveal() {
   stopTimer();
+  playReveal();
   revealAnswer();
   setPhase('revealed');
 }

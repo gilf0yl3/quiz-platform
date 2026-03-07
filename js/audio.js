@@ -121,6 +121,24 @@ export function playNoAnswer() {
   });
 }
 
+/** Dramatic reveal sting — suspenseful roll then a bright chord */
+export function playReveal() {
+  if (_muted) return;
+  withRunningCtx(ctx => {
+    const t = ctx.currentTime;
+    // Rapid ascending tremolo roll (suspense build-up)
+    const rollFreqs = [220, 247, 277, 311, 349, 392, 440, 494];
+    rollFreqs.forEach((freq, i) => {
+      tone(ctx, freq, t + i * 0.06, 0.1, 'sawtooth', 0.12);
+    });
+    // Final bright chord stab
+    const hit = t + rollFreqs.length * 0.06 + 0.05;
+    [523.3, 659.3, 783.9, 1046.5].forEach(freq => {
+      tone(ctx, freq, hit, 0.6, 'triangle', 0.15);
+    });
+  });
+}
+
 /** Upward chime when a point is awarded */
 export function playPointAwarded() {
   if (_muted) return;
