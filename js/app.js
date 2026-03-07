@@ -146,7 +146,6 @@ function handleStartTimer() {
     },
     () => {
       playTimeUp();
-      handleReveal();
     }
   );
 }
