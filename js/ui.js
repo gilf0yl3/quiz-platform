@@ -4,6 +4,10 @@ import { state } from './state.js';
 
 export function showScreen(name) {
   document.body.dataset.screen = name;
+  const el = document.getElementById(`screen-${name}`);
+  el.classList.remove('screen-slide-in');
+  void el.offsetWidth;
+  el.classList.add('screen-slide-in');
 }
 
 // ── Game phase management ───────────────────────────────────────────────────
@@ -27,29 +31,46 @@ export function renderScoreboard() {
 
 // ── Question rendering ──────────────────────────────────────────────────────
 
+let _pendingAnswer = '';
+let _pendingHint = '';
+
 export function renderQuestion(index) {
   const q = state.questions[index];
+  _pendingAnswer = q.answer;
+  _pendingHint = q.hint || '';
+
   document.getElementById('question-counter').textContent =
     `Question ${index + 1} of ${state.questions.length}`;
   document.getElementById('category-label').textContent = q.category;
   document.getElementById('question-text').textContent = q.question;
-  document.getElementById('answer-text').textContent = q.answer;
-  document.getElementById('hint-text').textContent = q.hint || '';
-  document.getElementById('answer-text').classList.remove('revealed');
+
+  // Clear answer text immediately with no transition to avoid flash + length leak
+  const answerEl = document.getElementById('answer-text');
+  answerEl.style.transition = 'none';
+  answerEl.classList.remove('revealed');
+  answerEl.textContent = '';
+  void answerEl.offsetWidth; // flush
+  answerEl.style.transition = '';
+
+  document.getElementById('hint-text').textContent = '';
   document.getElementById('hint-text').classList.remove('visible');
 
   // Slide-in animation on each new question
   const card = document.querySelector('.question-card');
   card.classList.remove('q-enter');
-  void card.offsetWidth; // force reflow so animation retriggers
+  void card.offsetWidth;
   card.classList.add('q-enter');
 }
 
 // ── Answer reveal ───────────────────────────────────────────────────────────
 
 export function revealAnswer() {
-  document.getElementById('answer-text').classList.add('revealed');
-  document.getElementById('hint-text').classList.add('visible');
+  const answerEl = document.getElementById('answer-text');
+  answerEl.textContent = _pendingAnswer;
+  answerEl.classList.add('revealed');
+  const hintEl = document.getElementById('hint-text');
+  hintEl.textContent = _pendingHint;
+  hintEl.classList.add('visible');
 }
 
 // ── Timer UI ─────────────────────────────────────────────────────────────────
@@ -94,8 +115,8 @@ export function renderResults() {
   state.history.forEach((h, idx) => {
     const q = state.questions[idx];
     const scoredLabel =
-      h.scoredBy === null ? 'No point awarded' :
-      h.scoredBy === undefined ? 'No point awarded' :
+      h.scoredBy === null || h.scoredBy === undefined ? 'No point awarded' :
+      h.scoredBy === 'both' ? `Point → ${state.teams[0].name} & ${state.teams[1].name}` :
       `Point → ${state.teams[h.scoredBy].name}`;
 
     const li = document.createElement('li');

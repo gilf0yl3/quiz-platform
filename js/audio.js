@@ -119,6 +119,13 @@ export function isMuted() {
   return _muted;
 }
 
+/** Soft click for UI navigation */
+export function playClick() {
+  if (_muted) return;
+  const ctx = getCtx();
+  tone(700, ctx.currentTime, 0.07, 'sine', 0.14);
+}
+
 /** Call on first user interaction to unlock AudioContext on iOS/Chrome */
 export function unlockAudio() {
   getCtx();
