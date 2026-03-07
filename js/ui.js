@@ -115,6 +115,7 @@ export function renderResults() {
     const scoredLabel =
       h.scoredBy === null ? 'No point awarded' :
       h.scoredBy === undefined ? 'No point awarded' :
+      h.scoredBy === 'both' ? `Point → ${state.teams[0].name} & ${state.teams[1].name}` :
       `Point → ${state.teams[h.scoredBy].name}`;
 
     const li = document.createElement('li');

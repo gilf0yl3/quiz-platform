@@ -198,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-reveal').addEventListener('click', handleReveal);
   document.getElementById('award-btn-0').addEventListener('click', () => handleAward(0));
   document.getElementById('award-btn-1').addEventListener('click', () => handleAward(1));
+  document.getElementById('award-btn-both').addEventListener('click', () => handleAward('both'));
   document.getElementById('award-btn-none').addEventListener('click', () => handleAward(null));
   document.getElementById('btn-new-game').addEventListener('click', handleNewGame);
 
