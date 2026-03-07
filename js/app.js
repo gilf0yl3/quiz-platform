@@ -14,6 +14,69 @@ import {
 
 const TIMER_SECONDS = 60;
 
+// ── Player pool ───────────────────────────────────────────────────────────────
+
+let poolPlayers = [];
+
+function initPool() {
+  const input = document.getElementById('pool-member-input');
+  const addBtn = document.getElementById('pool-add-member');
+  const splitBtn = document.getElementById('btn-split');
+
+  const addToPool = () => {
+    const name = input.value.trim();
+    if (!name) return;
+    poolPlayers.push(name);
+    renderPool();
+    input.value = '';
+    input.focus();
+    splitBtn.disabled = poolPlayers.length < 2;
+  };
+
+  addBtn.addEventListener('click', addToPool);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') addToPool(); });
+
+  splitBtn.addEventListener('click', () => {
+    // Fisher-Yates shuffle
+    const shuffled = [...poolPlayers];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const mid = Math.ceil(shuffled.length / 2);
+    state.teams[0].members = shuffled.slice(0, mid);
+    state.teams[1].members = shuffled.slice(mid);
+
+    [0, 1].forEach(i => {
+      renderMemberList(i, document.getElementById(`team${i + 1}-members`));
+    });
+    validateSetup();
+  });
+}
+
+function renderPool() {
+  const container = document.getElementById('pool-members');
+  container.innerHTML = '';
+  poolPlayers.forEach((name, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'member-chip';
+    chip.innerHTML = `${name}<button class="chip-remove" aria-label="Remove ${name}">×</button>`;
+    chip.querySelector('.chip-remove').addEventListener('click', () => {
+      poolPlayers.splice(idx, 1);
+      renderPool();
+      document.getElementById('btn-split').disabled = poolPlayers.length < 2;
+    });
+    container.appendChild(chip);
+  });
+}
+
+function resetPool() {
+  poolPlayers = [];
+  renderPool();
+  document.getElementById('pool-member-input').value = '';
+  document.getElementById('btn-split').disabled = true;
+}
+
 // ── Setup screen ─────────────────────────────────────────────────────────────
 
 function initSetup() {
@@ -44,6 +107,7 @@ function initSetup() {
     });
   });
 
+  initPool();
   document.getElementById('btn-start-game').addEventListener('click', startGame);
   validateSetup();
 }
@@ -147,6 +211,7 @@ function handlePlayAgain() {
     document.getElementById(`team${n}-members`).innerHTML = '';
     document.getElementById(`team${n}-member-input`).value = '';
   });
+  resetPool();
 
   validateSetup();
   showScreen('setup');
