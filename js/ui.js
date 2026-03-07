@@ -4,7 +4,6 @@ import { state } from './state.js';
 
 export function showScreen(name) {
   document.body.dataset.screen = name;
-  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // ── Game phase management ───────────────────────────────────────────────────
