@@ -16,18 +16,12 @@ function getCtx() {
   return _ctx;
 }
 
-/** Ensure context is running, then call fn(ctx). */
+/** Resume context and run fn(ctx) synchronously. */
 function withRunningCtx(fn) {
   const ctx = getCtx();
   if (!ctx) return;
-  // Always call resume() — it's a no-op if already running, and it
-  // must be invoked synchronously inside the user-gesture call-stack.
-  const p = ctx.resume();
-  if (ctx.state === 'running') {
-    fn(ctx);
-  } else {
-    p.then(() => fn(ctx));
-  }
+  ctx.resume();   // no-op if already running; triggers unlock on user gesture
+  fn(ctx);        // schedule audio nodes immediately — they play once ctx is running
 }
 
 /** Play a single tone */
