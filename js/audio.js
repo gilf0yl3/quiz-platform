@@ -16,14 +16,17 @@ function getCtx() {
   return _ctx;
 }
 
-/** Resume context if suspended, then run fn(ctx). Works in and out of user gesture. */
+/** Ensure context is running, then call fn(ctx). */
 function withRunningCtx(fn) {
   const ctx = getCtx();
   if (!ctx) return;
+  // Always call resume() — it's a no-op if already running, and it
+  // must be invoked synchronously inside the user-gesture call-stack.
+  const p = ctx.resume();
   if (ctx.state === 'running') {
     fn(ctx);
   } else {
-    ctx.resume().then(() => fn(ctx));
+    p.then(() => fn(ctx));
   }
 }
 
