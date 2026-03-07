@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-screen="setup">
+<html lang="en" data-screen="welcome">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,66 +14,56 @@
   <button id="btn-mute" class="btn-mute" title="Toggle sound" aria-label="Mute sound">🔊</button>
 
   <!-- ═══════════════════════════════════════════════════════════════
-       SCREEN A — SETUP
+       SCREEN 1 — WELCOME
        ════════════════════════════════════════════════════════════════ -->
-  <section id="screen-setup">
-    <div class="setup-header">
+  <section id="screen-welcome">
+    <div class="welcome-hero">
+      <div class="welcome-icon">🎯</div>
       <h1>Trivia Night</h1>
-      <p>Set up your teams to get started</p>
+      <p>Add all your players, then split into teams</p>
     </div>
 
-    <!-- Player pool -->
-    <div class="pool-card">
-      <div class="pool-title">Add Players &amp; Split Randomly</div>
+    <div class="welcome-pool">
       <div class="member-add-row">
         <input type="text" id="pool-member-input" placeholder="Enter a player name…" autocomplete="off" />
-        <button id="pool-add-member" class="btn btn-ghost btn-sm">Add</button>
+        <button id="pool-add-btn" class="btn btn-ghost btn-sm">Add</button>
       </div>
       <div class="member-chips" id="pool-members"></div>
-      <button id="btn-split" class="btn btn-primary btn-split" disabled>🔀 Split Randomly</button>
     </div>
 
-    <div class="teams-grid">
-
-      <!-- Team 1 -->
-      <div class="team-card">
-        <label for="team1-name">Team 1 Name</label>
-        <input type="text" id="team1-name" placeholder="e.g. The Brainiacs" autocomplete="off" />
-        <div class="members-section">
-          <div class="members-label">Team Members</div>
-          <div class="member-add-row">
-            <input type="text" id="team1-member-input" placeholder="Add a name…" autocomplete="off" />
-            <button id="team1-add-member" class="btn btn-ghost btn-sm">Add</button>
-          </div>
-          <div class="member-chips" id="team1-members"></div>
-        </div>
-      </div>
-
-      <!-- Team 2 -->
-      <div class="team-card">
-        <label for="team2-name">Team 2 Name</label>
-        <input type="text" id="team2-name" placeholder="e.g. Quiz Masters" autocomplete="off" />
-        <div class="members-section">
-          <div class="members-label">Team Members</div>
-          <div class="member-add-row">
-            <input type="text" id="team2-member-input" placeholder="Add a name…" autocomplete="off" />
-            <button id="team2-add-member" class="btn btn-ghost btn-sm">Add</button>
-          </div>
-          <div class="member-chips" id="team2-members"></div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="setup-cta">
-      <button id="btn-start-game" class="btn btn-primary" disabled>
-        Start Game
-      </button>
+    <div class="welcome-cta">
+      <button id="btn-next" class="btn btn-primary" disabled>Next →</button>
     </div>
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
-       SCREEN B — GAME
+       SCREEN 2 — TEAMS
+       ════════════════════════════════════════════════════════════════ -->
+  <section id="screen-teams">
+    <div class="teams-screen-header">
+      <h2>Your Teams</h2>
+      <p>Happy with the split? Name your teams and start!</p>
+    </div>
+
+    <div class="split-grid">
+      <div class="split-card">
+        <input type="text" id="team1-name" class="team-name-input" placeholder="Team 1 name…" autocomplete="off" />
+        <div class="split-members" id="split-team1-members"></div>
+      </div>
+      <div class="split-card">
+        <input type="text" id="team2-name" class="team-name-input" placeholder="Team 2 name…" autocomplete="off" />
+        <div class="split-members" id="split-team2-members"></div>
+      </div>
+    </div>
+
+    <div class="teams-actions">
+      <button id="btn-reshuffle" class="btn btn-ghost">🔀 Shuffle Again</button>
+      <button id="btn-start-game" class="btn btn-primary" disabled>Start Game →</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCREEN 3 — GAME
        ════════════════════════════════════════════════════════════════ -->
   <section id="screen-game" data-phase="idle">
 
@@ -145,7 +135,7 @@
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
-       SCREEN C — RESULTS
+       SCREEN 4 — RESULTS
        ════════════════════════════════════════════════════════════════ -->
   <section id="screen-results">
 
@@ -172,7 +162,7 @@
       <ul class="breakdown-list" id="breakdown-list"></ul>
     </details>
 
-    <button id="btn-play-again" class="btn btn-primary">Play Again</button>
+    <button id="btn-new-game" class="btn btn-primary">New Game</button>
 
   </section>
 

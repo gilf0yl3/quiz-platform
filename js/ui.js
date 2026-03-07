@@ -37,6 +37,12 @@ export function renderQuestion(index) {
   document.getElementById('hint-text').textContent = q.hint || '';
   document.getElementById('answer-text').classList.remove('revealed');
   document.getElementById('hint-text').classList.remove('visible');
+
+  // Slide-in animation on each new question
+  const card = document.querySelector('.question-card');
+  card.classList.remove('q-enter');
+  void card.offsetWidth; // force reflow so animation retriggers
+  card.classList.add('q-enter');
 }
 
 // ── Answer reveal ───────────────────────────────────────────────────────────

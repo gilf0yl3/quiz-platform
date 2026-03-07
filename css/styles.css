@@ -37,12 +37,14 @@ body {
 }
 
 /* ── Screen visibility ────────────────────────────────────────────────────── */
-#screen-setup,
+#screen-welcome,
+#screen-teams,
 #screen-game,
 #screen-results { display: none; }
 
-[data-screen="setup"]   #screen-setup   { display: block; }
-[data-screen="game"]    #screen-game    { display: block; }
+[data-screen="welcome"] #screen-welcome { display: flex; }
+[data-screen="teams"]   #screen-teams   { display: flex; }
+[data-screen="game"]    #screen-game    { display: flex; }
 [data-screen="results"] #screen-results { display: block; }
 
 /* ── Typography ───────────────────────────────────────────────────────────── */
@@ -113,60 +115,54 @@ h2 {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
-/*  SCREEN A — SETUP                                                           */
+/*  SCREEN 1 — WELCOME                                                         */
 /* ═══════════════════════════════════════════════════════════════════════════ */
-#screen-setup {
+#screen-welcome {
   min-height: 100vh;
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1.25rem;
+  padding: 2.5rem 1.25rem;
+  gap: 2rem;
 }
 
-.setup-header {
+.welcome-hero {
   text-align: center;
-  margin-bottom: 2.5rem;
 }
-
-.setup-header p {
+.welcome-icon {
+  font-size: 3.5rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+.welcome-hero p {
   margin-top: 0.5rem;
   color: var(--color-text-secondary);
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 
-.teams-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+.welcome-pool {
   width: 100%;
-  max-width: 680px;
-  margin-bottom: 2rem;
-}
-
-@media (max-width: 540px) {
-  .teams-grid { grid-template-columns: 1fr; }
-}
-
-.team-card {
+  max-width: 480px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.team-card label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-secondary);
-  margin-bottom: 0.4rem;
-}
+.welcome-cta { text-align: center; }
 
-.team-card input[type="text"] {
+/* ── Shared input / chip utilities ──────────────────────────────────────────── */
+.member-add-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.member-add-row input { flex: 1; }
+
+input[type="text"] {
   width: 100%;
   padding: 0.55rem 0.85rem;
   border: 1.5px solid var(--color-border);
@@ -178,29 +174,7 @@ h2 {
   transition: border-color var(--transition);
   outline: none;
 }
-.team-card input[type="text"]:focus {
-  border-color: var(--color-accent);
-}
-
-.members-section { margin-top: 1.25rem; }
-
-.members-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.member-add-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-.member-add-row input {
-  flex: 1;
-}
+input[type="text"]:focus { border-color: var(--color-accent); }
 
 .member-chips {
   display: flex;
@@ -234,27 +208,88 @@ h2 {
 }
 .chip-remove:hover { opacity: 1; }
 
-.setup-cta { text-align: center; }
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  SCREEN 2 — TEAMS                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+#screen-teams {
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.25rem;
+  gap: 1.75rem;
+}
 
-/* ── Player pool ─────────────────────────────────────────────────────────────── */
-.pool-card {
-  background: var(--color-accent-light);
-  border: 1.5px dashed var(--color-accent);
+.teams-screen-header { text-align: center; }
+.teams-screen-header p {
+  margin-top: 0.4rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+}
+
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 640px;
+}
+@media (max-width: 520px) {
+  .split-grid { grid-template-columns: 1fr; }
+}
+
+.split-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.25rem 1rem;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
 }
-.pool-title {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--color-accent);
-  letter-spacing: 0.01em;
+
+.team-name-input {
+  font-size: 1.05rem;
+  font-weight: 600;
 }
-.btn-split {
-  align-self: flex-start;
+
+.split-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.split-member-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.split-member-row:last-child { border-bottom: none; }
+.split-member-avatar {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.teams-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -360,6 +395,14 @@ h2 {
   box-shadow: var(--shadow-card);
   width: 100%;
   margin-bottom: 1.5rem;
+}
+
+@keyframes questionEnter {
+  from { opacity: 0; transform: translateX(36px) scale(0.97); }
+  to   { opacity: 1; transform: translateX(0)    scale(1);    }
+}
+.question-card.q-enter {
+  animation: questionEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .question-text {

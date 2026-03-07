@@ -9,52 +9,40 @@ import {
 import {
   unlockAudio, playGameStart, playTimerTick, playTimeUp,
   playPointAwarded, startBackgroundMusic, stopBackgroundMusic,
-  toggleMute, isMuted
+  toggleMute
 } from './audio.js';
 
 const TIMER_SECONDS = 60;
 
-// ── Player pool ───────────────────────────────────────────────────────────────
+// ── Screen 1: Welcome (player pool) ──────────────────────────────────────────
 
 let poolPlayers = [];
 
-function initPool() {
-  const input = document.getElementById('pool-member-input');
-  const addBtn = document.getElementById('pool-add-member');
-  const splitBtn = document.getElementById('btn-split');
+function initWelcome() {
+  const input  = document.getElementById('pool-member-input');
+  const addBtn = document.getElementById('pool-add-btn');
+  const nextBtn = document.getElementById('btn-next');
 
-  const addToPool = () => {
+  const addPlayer = () => {
     const name = input.value.trim();
     if (!name) return;
     poolPlayers.push(name);
-    renderPool();
+    renderPoolChips();
     input.value = '';
     input.focus();
-    splitBtn.disabled = poolPlayers.length < 2;
+    nextBtn.disabled = poolPlayers.length < 2;
   };
 
-  addBtn.addEventListener('click', addToPool);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') addToPool(); });
+  addBtn.addEventListener('click', addPlayer);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
 
-  splitBtn.addEventListener('click', () => {
-    // Fisher-Yates shuffle
-    const shuffled = [...poolPlayers];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    const mid = Math.ceil(shuffled.length / 2);
-    state.teams[0].members = shuffled.slice(0, mid);
-    state.teams[1].members = shuffled.slice(mid);
-
-    [0, 1].forEach(i => {
-      renderMemberList(i, document.getElementById(`team${i + 1}-members`));
-    });
-    validateSetup();
+  nextBtn.addEventListener('click', () => {
+    splitTeams();
+    showScreen('teams');
   });
 }
 
-function renderPool() {
+function renderPoolChips() {
   const container = document.getElementById('pool-members');
   container.innerHTML = '';
   poolPlayers.forEach((name, idx) => {
@@ -63,84 +51,69 @@ function renderPool() {
     chip.innerHTML = `${name}<button class="chip-remove" aria-label="Remove ${name}">×</button>`;
     chip.querySelector('.chip-remove').addEventListener('click', () => {
       poolPlayers.splice(idx, 1);
-      renderPool();
-      document.getElementById('btn-split').disabled = poolPlayers.length < 2;
+      renderPoolChips();
+      document.getElementById('btn-next').disabled = poolPlayers.length < 2;
     });
     container.appendChild(chip);
   });
 }
 
-function resetPool() {
-  poolPlayers = [];
-  renderPool();
-  document.getElementById('pool-member-input').value = '';
-  document.getElementById('btn-split').disabled = true;
+// ── Screen 2: Teams (split & name) ───────────────────────────────────────────
+
+function splitTeams() {
+  const shuffled = [...poolPlayers];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const mid = Math.ceil(shuffled.length / 2);
+  state.teams[0].members = shuffled.slice(0, mid);
+  state.teams[1].members = shuffled.slice(mid);
+  renderSplitCards();
 }
 
-// ── Setup screen ─────────────────────────────────────────────────────────────
-
-function initSetup() {
+function renderSplitCards() {
   [0, 1].forEach(i => {
-    const teamInput = document.getElementById(`team${i + 1}-name`);
-    const memberInput = document.getElementById(`team${i + 1}-member-input`);
-    const addBtn = document.getElementById(`team${i + 1}-add-member`);
-    const memberList = document.getElementById(`team${i + 1}-members`);
-
-    teamInput.addEventListener('input', () => {
-      state.teams[i].name = teamInput.value.trim();
-      validateSetup();
+    const container = document.getElementById(`split-team${i + 1}-members`);
+    container.innerHTML = '';
+    state.teams[i].members.forEach(name => {
+      const row = document.createElement('div');
+      row.className = 'split-member-row';
+      const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      row.innerHTML = `<span class="split-member-avatar">${initials}</span>${name}`;
+      container.appendChild(row);
     });
+  });
+}
 
-    const addMember = () => {
-      const name = memberInput.value.trim();
-      if (!name) return;
-      state.teams[i].members.push(name);
-      renderMemberList(i, memberList);
-      memberInput.value = '';
-      memberInput.focus();
-      validateSetup();
-    };
+function initTeams() {
+  const startBtn = document.getElementById('btn-start-game');
 
-    addBtn.addEventListener('click', addMember);
-    memberInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') addMember();
+  const validateTeams = () => {
+    startBtn.disabled =
+      !state.teams[0].name.trim() ||
+      !state.teams[1].name.trim();
+  };
+
+  [0, 1].forEach(i => {
+    const input = document.getElementById(`team${i + 1}-name`);
+    input.addEventListener('input', () => {
+      state.teams[i].name = input.value.trim();
+      validateTeams();
     });
   });
 
-  initPool();
-  document.getElementById('btn-start-game').addEventListener('click', startGame);
-  validateSetup();
-}
-
-function renderMemberList(teamIndex, container) {
-  container.innerHTML = '';
-  state.teams[teamIndex].members.forEach((name, idx) => {
-    const chip = document.createElement('span');
-    chip.className = 'member-chip';
-    chip.innerHTML = `${name}<button class="chip-remove" aria-label="Remove ${name}">×</button>`;
-    chip.querySelector('.chip-remove').addEventListener('click', () => {
-      state.teams[teamIndex].members.splice(idx, 1);
-      renderMemberList(teamIndex, container);
-      validateSetup();
-    });
-    container.appendChild(chip);
+  document.getElementById('btn-reshuffle').addEventListener('click', () => {
+    splitTeams();
   });
+
+  startBtn.addEventListener('click', startGame);
+  validateTeams();
 }
 
-function validateSetup() {
-  const btn = document.getElementById('btn-start-game');
-  const valid =
-    state.teams[0].name.length > 0 &&
-    state.teams[1].name.length > 0 &&
-    state.teams[0].members.length > 0 &&
-    state.teams[1].members.length > 0;
-  btn.disabled = !valid;
-}
-
-// ── Game flow ─────────────────────────────────────────────────────────────────
+// ── Screen 3: Game ────────────────────────────────────────────────────────────
 
 function startGame() {
-  // Shuffle questions
   state.questions = [...allQuestions].sort(() => Math.random() - 0.5);
   state.currentIndex = 0;
   state.history = state.questions.map(q => ({ questionId: q.id, scoredBy: undefined }));
@@ -186,7 +159,6 @@ function handleAward(teamIndex) {
   renderScoreboard();
   if (teamIndex !== null) playPointAwarded();
 
-  // Brief pause, then advance
   setTimeout(() => {
     const nextIndex = state.currentIndex + 1;
     if (nextIndex >= state.questions.length) {
@@ -200,34 +172,33 @@ function handleAward(teamIndex) {
   }, 1200);
 }
 
-// ── Results ───────────────────────────────────────────────────────────────────
+// ── Screen 4: Results ─────────────────────────────────────────────────────────
 
-function handlePlayAgain() {
+function handleNewGame() {
   resetState();
-
-  // Reset setup form
+  poolPlayers = [];
+  document.getElementById('pool-members').innerHTML = '';
+  document.getElementById('pool-member-input').value = '';
+  document.getElementById('btn-next').disabled = true;
   [1, 2].forEach(n => {
     document.getElementById(`team${n}-name`).value = '';
-    document.getElementById(`team${n}-members`).innerHTML = '';
-    document.getElementById(`team${n}-member-input`).value = '';
   });
-  resetPool();
-
-  validateSetup();
-  showScreen('setup');
+  document.getElementById('btn-start-game').disabled = true;
+  showScreen('welcome');
 }
 
 // ── Wiring ────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  initSetup();
+  initWelcome();
+  initTeams();
 
   document.getElementById('btn-start-timer').addEventListener('click', handleStartTimer);
   document.getElementById('btn-reveal').addEventListener('click', handleReveal);
   document.getElementById('award-btn-0').addEventListener('click', () => handleAward(0));
   document.getElementById('award-btn-1').addEventListener('click', () => handleAward(1));
   document.getElementById('award-btn-none').addEventListener('click', () => handleAward(null));
-  document.getElementById('btn-play-again').addEventListener('click', handlePlayAgain);
+  document.getElementById('btn-new-game').addEventListener('click', handleNewGame);
 
   // Mute toggle
   const muteBtn = document.getElementById('btn-mute');
@@ -238,8 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
     muteBtn.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
   });
 
-  // Unlock AudioContext on first interaction (iOS / Chrome policy)
   document.addEventListener('click', unlockAudio, { once: true });
-
-  showScreen('setup');
+  showScreen('welcome');
 });
