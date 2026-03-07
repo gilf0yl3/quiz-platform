@@ -4,6 +4,8 @@ import { state } from './state.js';
 
 export function showScreen(name) {
   document.body.dataset.screen = name;
+  const el = document.getElementById(`screen-${name}`);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
 // ── Game phase management ───────────────────────────────────────────────────
