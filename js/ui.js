@@ -27,15 +27,29 @@ export function renderScoreboard() {
 
 // ── Question rendering ──────────────────────────────────────────────────────
 
+let _pendingAnswer = '';
+let _pendingHint = '';
+
 export function renderQuestion(index) {
   const q = state.questions[index];
+  _pendingAnswer = q.answer;
+  _pendingHint = q.hint || '';
+
   document.getElementById('question-counter').textContent =
     `Question ${index + 1} of ${state.questions.length}`;
   document.getElementById('category-label').textContent = q.category;
   document.getElementById('question-text').textContent = q.question;
-  document.getElementById('answer-text').textContent = q.answer;
-  document.getElementById('hint-text').textContent = q.hint || '';
-  document.getElementById('answer-text').classList.remove('revealed');
+
+  // Instantly clear + re-blur with no transition so the old answer never flashes
+  // and the empty element reveals nothing about the answer length
+  const answerEl = document.getElementById('answer-text');
+  answerEl.style.transition = 'none';
+  answerEl.classList.remove('revealed');
+  answerEl.textContent = '';
+  void answerEl.offsetWidth; // flush style
+  answerEl.style.transition = '';
+
+  document.getElementById('hint-text').textContent = '';
   document.getElementById('hint-text').classList.remove('visible');
 
   // Slide-in animation on each new question
@@ -48,8 +62,12 @@ export function renderQuestion(index) {
 // ── Answer reveal ───────────────────────────────────────────────────────────
 
 export function revealAnswer() {
-  document.getElementById('answer-text').classList.add('revealed');
-  document.getElementById('hint-text').classList.add('visible');
+  const answerEl = document.getElementById('answer-text');
+  answerEl.textContent = _pendingAnswer;
+  answerEl.classList.add('revealed');
+  const hintEl = document.getElementById('hint-text');
+  hintEl.textContent = _pendingHint;
+  hintEl.classList.add('visible');
 }
 
 // ── Timer UI ─────────────────────────────────────────────────────────────────
