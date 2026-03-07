@@ -87,10 +87,25 @@ export function playNewQuestion() {
 /** Sad trombone "wah-wah" when neither team answers correctly */
 export function playNoAnswer() {
   if (_muted) return;
-  withRunningCtx(ctx => {
-    const t = ctx.currentTime;
-    [311, 277, 233, 196].forEach((freq, i) => {
-      tone(ctx, freq, t + i * 0.18, 0.32, 'sawtooth', 0.18);
+  const ctx = getCtx();
+  if (!ctx) return;
+  ctx.resume().then(() => {
+    const t = ctx.currentTime + 0.05;
+    // Descending slide on each note for trombone feel
+    [622, 554, 466, 392].forEach((freq, i) => {
+      const start = t + i * 0.22;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, start);
+      osc.frequency.linearRampToValueAtTime(freq * 0.88, start + 0.2);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.32, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.38);
+      osc.start(start);
+      osc.stop(start + 0.42);
     });
   });
 }
