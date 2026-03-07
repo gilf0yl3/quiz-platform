@@ -185,6 +185,7 @@ function handleNewGame() {
     document.getElementById(`team${n}-name`).value = '';
   });
   document.getElementById('btn-start-game').disabled = true;
+  startBackgroundMusic();
   showScreen('welcome');
 }
 
@@ -211,6 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
     muteBtn.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
   });
 
-  document.addEventListener('click', unlockAudio, { once: true });
+  document.addEventListener('click', () => {
+    unlockAudio();
+    startBackgroundMusic();
+  }, { once: true });
   showScreen('welcome');
 });
