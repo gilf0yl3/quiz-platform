@@ -36,36 +36,16 @@ body {
   line-height: 1.5;
 }
 
-/* ── Screen layout — each screen is a full-page overlay ─────────────────── */
+/* ── Screen visibility ────────────────────────────────────────────────────── */
 #screen-welcome,
 #screen-teams,
 #screen-game,
-#screen-results {
-  position: fixed;
-  inset: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  background: var(--color-bg);
-  display: none;        /* JS sets display when active */
-}
+#screen-results { display: none; }
 
-/* ── Page transition animations ─────────────────────────────────────────── */
-@keyframes pageSlideIn {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
-}
-@keyframes pageSlideOut {
-  from { transform: translateX(0);    opacity: 1; }
-  to   { transform: translateX(-22%); opacity: 0.25; }
-}
-.page-enter {
-  z-index: 10;
-  animation: pageSlideIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.page-exit {
-  z-index: 9;
-  animation: pageSlideOut 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
+[data-screen="welcome"] #screen-welcome { display: flex; }
+[data-screen="teams"]   #screen-teams   { display: flex; }
+[data-screen="game"]    #screen-game    { display: flex; }
+[data-screen="results"] #screen-results { display: block; }
 
 /* ── Typography ───────────────────────────────────────────────────────────── */
 h1 {
@@ -138,6 +118,7 @@ h2 {
 /*  SCREEN 1 — WELCOME                                                         */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 #screen-welcome {
+  min-height: 100vh;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -231,6 +212,7 @@ input[type="text"]:focus { border-color: var(--color-accent); }
 /*  SCREEN 2 — TEAMS                                                           */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 #screen-teams {
+  min-height: 100vh;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -314,6 +296,8 @@ input[type="text"]:focus { border-color: var(--color-accent); }
 /*  SCREEN B — GAME                                                            */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 #screen-game {
+  min-height: 100vh;
+  display: flex;
   flex-direction: column;
 }
 
@@ -543,6 +527,8 @@ input[type="text"]:focus { border-color: var(--color-accent); }
 /*  SCREEN C — RESULTS                                                         */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 #screen-results {
+  min-height: 100vh;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
