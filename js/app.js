@@ -114,6 +114,7 @@ function initTeams() {
 // ── Screen 3: Game ────────────────────────────────────────────────────────────
 
 function startGame() {
+  unlockAudio();
   state.questions = [...allQuestions].sort(() => Math.random() - 0.5);
   state.currentIndex = 0;
   state.history = state.questions.map(q => ({ questionId: q.id, scoredBy: undefined }));

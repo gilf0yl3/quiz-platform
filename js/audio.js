@@ -6,20 +6,29 @@ let _musicPlaying = false;
 let _musicLoop = null;
 
 function getCtx() {
-  if (!_ctx) _ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!_ctx) {
+    try {
+      _ctx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      return null;
+    }
+  }
   return _ctx;
 }
 
-/** Ensure context is running before scheduling audio, then call fn(ctx) */
-async function withCtx(fn) {
+/** Resume context if suspended, then run fn(ctx). Works in and out of user gesture. */
+function withRunningCtx(fn) {
   const ctx = getCtx();
-  if (ctx.state !== 'running') await ctx.resume();
-  fn(ctx);
+  if (!ctx) return;
+  if (ctx.state === 'running') {
+    fn(ctx);
+  } else {
+    ctx.resume().then(() => fn(ctx));
+  }
 }
 
 /** Play a single tone */
-function tone(freq, startTime, duration, type = 'sine', vol = 0.25) {
-  const ctx = getCtx();
+function tone(ctx, freq, startTime, duration, type = 'sine', vol = 0.25) {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain);
@@ -38,10 +47,10 @@ function tone(freq, startTime, duration, type = 'sine', vol = 0.25) {
 /** Ascending 4-note fanfare on game start */
 export function playGameStart() {
   if (_muted) return;
-  withCtx(ctx => {
+  withRunningCtx(ctx => {
     const t = ctx.currentTime;
     [261.6, 329.6, 392.0, 523.3].forEach((freq, i) => {
-      tone(freq, t + i * 0.15, 0.45, 'triangle', 0.28);
+      tone(ctx, freq, t + i * 0.15, 0.45, 'triangle', 0.28);
     });
   });
 }
@@ -49,18 +58,18 @@ export function playGameStart() {
 /** Short click tick for countdown (last 10 s) */
 export function playTimerTick() {
   if (_muted) return;
-  withCtx(ctx => {
-    tone(900, ctx.currentTime, 0.06, 'square', 0.18);
+  withRunningCtx(ctx => {
+    tone(ctx, 900, ctx.currentTime, 0.06, 'square', 0.18);
   });
 }
 
 /** Descending alarm when time runs out */
 export function playTimeUp() {
   if (_muted) return;
-  withCtx(ctx => {
+  withRunningCtx(ctx => {
     const t = ctx.currentTime;
     [440, 392, 349, 311].forEach((freq, i) => {
-      tone(freq, t + i * 0.12, 0.25, 'sawtooth', 0.22);
+      tone(ctx, freq, t + i * 0.12, 0.25, 'sawtooth', 0.22);
     });
   });
 }
@@ -68,10 +77,10 @@ export function playTimeUp() {
 /** Upward chime when a point is awarded */
 export function playPointAwarded() {
   if (_muted) return;
-  withCtx(ctx => {
+  withRunningCtx(ctx => {
     const t = ctx.currentTime;
     [523.3, 659.3, 783.9].forEach((freq, i) => {
-      tone(freq, t + i * 0.11, 0.3, 'sine', 0.22);
+      tone(ctx, freq, t + i * 0.11, 0.3, 'sine', 0.22);
     });
   });
 }
@@ -86,13 +95,6 @@ const CHORDS = [
   [196.0, 246.9, 293.7],   // G major
 ];
 
-function playChord(freqs, startTime) {
-  if (_muted) return;
-  freqs.forEach(freq => {
-    tone(freq * 0.5, startTime, 1.6, 'sine', 0.055);  // soft, low octave
-  });
-}
-
 export function startBackgroundMusic() {
   if (_musicPlaying) return;
   _musicPlaying = true;
@@ -100,8 +102,11 @@ export function startBackgroundMusic() {
 
   function next() {
     if (!_musicPlaying) return;
-    withCtx(ctx => {
-      playChord(CHORDS[i % CHORDS.length], ctx.currentTime);
+    withRunningCtx(ctx => {
+      const t = ctx.currentTime;
+      CHORDS[i % CHORDS.length].forEach(freq => {
+        tone(ctx, freq * 0.5, t, 1.6, 'sine', 0.055);
+      });
       i++;
     });
     _musicLoop = setTimeout(next, 1900);
@@ -132,5 +137,6 @@ export function isMuted() {
 
 /** Call on first user interaction to unlock AudioContext on iOS/Chrome */
 export function unlockAudio() {
-  withCtx(() => {});
+  const ctx = getCtx();
+  if (ctx && ctx.state === 'suspended') ctx.resume();
 }
