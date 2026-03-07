@@ -83,25 +83,99 @@ export function playPointAwarded() {
 }
 
 // ── Background music ──────────────────────────────────────────────────────────
-// Soft looping chord progression: C  Am  F  G
 
-const CHORDS = [
+let _currentTrack = null;  // 'lobby' | 'game'
+
+function stopMusicLoop() {
+  _musicPlaying = false;
+  _currentTrack = null;
+  if (_musicLoop !== null) {
+    clearTimeout(_musicLoop);
+    _musicLoop = null;
+  }
+}
+
+// — Lobby music: upbeat bouncy melody for welcome & team screens —
+
+const LOBBY_MELODY = [
+  // Each step: [freq, duration, wave, vol]
+  [523.3, 0.18, 'triangle', 0.12],  // C5
+  [587.3, 0.18, 'triangle', 0.10],  // D5
+  [659.3, 0.18, 'triangle', 0.12],  // E5
+  [784.0, 0.28, 'triangle', 0.14],  // G5
+  [659.3, 0.18, 'triangle', 0.10],  // E5
+  [784.0, 0.28, 'triangle', 0.14],  // G5
+  [880.0, 0.35, 'triangle', 0.12],  // A5
+  [784.0, 0.28, 'triangle', 0.10],  // G5
+  [659.3, 0.18, 'triangle', 0.12],  // E5
+  [587.3, 0.18, 'triangle', 0.10],  // D5
+  [523.3, 0.35, 'triangle', 0.14],  // C5
+  [440.0, 0.18, 'triangle', 0.10],  // A4
+  [523.3, 0.28, 'triangle', 0.12],  // C5
+  [587.3, 0.35, 'triangle', 0.14],  // D5
+  [523.3, 0.28, 'triangle', 0.10],  // C5
+  [440.0, 0.35, 'triangle', 0.12],  // A4
+];
+
+const LOBBY_BASS = [
+  [130.8, 0.6, 'sine', 0.08],   // C3
+  [110.0, 0.6, 'sine', 0.08],   // A2
+  [146.8, 0.6, 'sine', 0.08],   // D3
+  [164.8, 0.6, 'sine', 0.08],   // E3
+];
+
+export function startLobbyMusic() {
+  if (_musicPlaying && _currentTrack === 'lobby') return;
+  stopMusicLoop();
+  _musicPlaying = true;
+  _currentTrack = 'lobby';
+  let melodyIdx = 0;
+  let bassIdx = 0;
+  let beatCount = 0;
+
+  function next() {
+    if (!_musicPlaying || _currentTrack !== 'lobby') return;
+    withRunningCtx(ctx => {
+      const t = ctx.currentTime;
+      // melody note
+      const m = LOBBY_MELODY[melodyIdx % LOBBY_MELODY.length];
+      tone(ctx, m[0], t, m[1], m[2], m[3]);
+      melodyIdx++;
+      // bass note every 4 beats
+      if (beatCount % 4 === 0) {
+        const b = LOBBY_BASS[bassIdx % LOBBY_BASS.length];
+        tone(ctx, b[0], t, b[1], b[2], b[3]);
+        bassIdx++;
+      }
+      beatCount++;
+    });
+    _musicLoop = setTimeout(next, 280);  // fast tempo ~214 BPM
+  }
+
+  next();
+}
+
+// — Game music: calmer chord progression for gameplay —
+
+const GAME_CHORDS = [
   [261.6, 329.6, 392.0],   // C major
   [220.0, 261.6, 329.6],   // A minor
   [174.6, 220.0, 261.6],   // F major
   [196.0, 246.9, 293.7],   // G major
 ];
 
-export function startBackgroundMusic() {
-  if (_musicPlaying) return;
+export function startGameMusic() {
+  if (_musicPlaying && _currentTrack === 'game') return;
+  stopMusicLoop();
   _musicPlaying = true;
+  _currentTrack = 'game';
   let i = 0;
 
   function next() {
-    if (!_musicPlaying) return;
+    if (!_musicPlaying || _currentTrack !== 'game') return;
     withRunningCtx(ctx => {
       const t = ctx.currentTime;
-      CHORDS[i % CHORDS.length].forEach(freq => {
+      GAME_CHORDS[i % GAME_CHORDS.length].forEach(freq => {
         tone(ctx, freq * 0.5, t, 1.6, 'sine', 0.055);
       });
       i++;
@@ -113,11 +187,7 @@ export function startBackgroundMusic() {
 }
 
 export function stopBackgroundMusic() {
-  _musicPlaying = false;
-  if (_musicLoop !== null) {
-    clearTimeout(_musicLoop);
-    _musicLoop = null;
-  }
+  stopMusicLoop();
 }
 
 // ── Mute toggle ───────────────────────────────────────────────────────────────

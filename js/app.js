@@ -8,7 +8,7 @@ import {
 } from './ui.js';
 import {
   unlockAudio, playGameStart, playTimerTick, playTimeUp,
-  playPointAwarded, startBackgroundMusic, stopBackgroundMusic,
+  playPointAwarded, startLobbyMusic, startGameMusic, stopBackgroundMusic,
   toggleMute
 } from './audio.js';
 
@@ -120,7 +120,7 @@ function startGame() {
   state.history = state.questions.map(q => ({ questionId: q.id, scoredBy: undefined }));
 
   playGameStart();
-  startBackgroundMusic();
+  startGameMusic();
   showScreen('game');
   renderScoreboard();
   loadQuestion(0);
@@ -185,7 +185,7 @@ function handleNewGame() {
     document.getElementById(`team${n}-name`).value = '';
   });
   document.getElementById('btn-start-game').disabled = true;
-  startBackgroundMusic();
+  startLobbyMusic();
   showScreen('welcome');
 }
 
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', () => {
     unlockAudio();
-    startBackgroundMusic();
+    startLobbyMusic();
   }, { once: true });
   showScreen('welcome');
 });
