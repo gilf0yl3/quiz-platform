@@ -2,8 +2,40 @@ import { state } from './state.js';
 
 // ── Screen management ───────────────────────────────────────────────────────
 
+let _activeScreen = null;
+
+function _displayForScreen(name) {
+  return name === 'results' ? 'block' : 'flex';
+}
+
 export function showScreen(name) {
-  document.body.dataset.screen = name;
+  const next = document.getElementById(`screen-${name}`);
+
+  // First render — no animation
+  if (!_activeScreen) {
+    next.style.display = _displayForScreen(name);
+    _activeScreen = next;
+    return;
+  }
+
+  const prev = _activeScreen;
+  _activeScreen = next;
+
+  // Bring next into view (off-screen right) then animate both
+  next.style.display = _displayForScreen(name);
+  requestAnimationFrame(() => {
+    next.classList.add('page-enter');
+    prev.classList.add('page-exit');
+  });
+
+  next.addEventListener('animationend', () => {
+    next.classList.remove('page-enter');
+  }, { once: true });
+
+  prev.addEventListener('animationend', () => {
+    prev.classList.remove('page-exit');
+    prev.style.display = 'none';
+  }, { once: true });
 }
 
 // ── Game phase management ───────────────────────────────────────────────────
