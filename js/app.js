@@ -6,6 +6,11 @@ import {
   renderScoreboard, renderQuestion, revealAnswer,
   updateTimerDisplay, renderResults
 } from './ui.js';
+import {
+  unlockAudio, playGameStart, playTimerTick, playTimeUp,
+  playPointAwarded, startBackgroundMusic, stopBackgroundMusic,
+  toggleMute, isMuted
+} from './audio.js';
 
 const TIMER_SECONDS = 60;
 
@@ -76,6 +81,8 @@ function startGame() {
   state.currentIndex = 0;
   state.history = state.questions.map(q => ({ questionId: q.id, scoredBy: undefined }));
 
+  playGameStart();
+  startBackgroundMusic();
   showScreen('game');
   renderScoreboard();
   loadQuestion(0);
@@ -93,8 +100,14 @@ function handleStartTimer() {
   setPhase('running');
   startTimer(
     TIMER_SECONDS,
-    (remaining, total) => updateTimerDisplay(remaining, total),
-    () => handleReveal()
+    (remaining, total) => {
+      updateTimerDisplay(remaining, total);
+      if (remaining <= 10 && remaining > 0) playTimerTick();
+    },
+    () => {
+      playTimeUp();
+      handleReveal();
+    }
   );
 }
 
@@ -107,11 +120,13 @@ function handleReveal() {
 function handleAward(teamIndex) {
   awardPoint(teamIndex);
   renderScoreboard();
+  if (teamIndex !== null) playPointAwarded();
 
   // Brief pause, then advance
   setTimeout(() => {
     const nextIndex = state.currentIndex + 1;
     if (nextIndex >= state.questions.length) {
+      stopBackgroundMusic();
       showScreen('results');
       renderResults();
     } else {
@@ -148,6 +163,18 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('award-btn-1').addEventListener('click', () => handleAward(1));
   document.getElementById('award-btn-none').addEventListener('click', () => handleAward(null));
   document.getElementById('btn-play-again').addEventListener('click', handlePlayAgain);
+
+  // Mute toggle
+  const muteBtn = document.getElementById('btn-mute');
+  muteBtn.addEventListener('click', () => {
+    unlockAudio();
+    const muted = toggleMute();
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+    muteBtn.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
+  });
+
+  // Unlock AudioContext on first interaction (iOS / Chrome policy)
+  document.addEventListener('click', unlockAudio, { once: true });
 
   showScreen('setup');
 });

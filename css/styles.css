@@ -601,3 +601,25 @@ details[open] .breakdown summary::before {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Mute button ─────────────────────────────────────────────────────────────── */
+.btn-mute {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 200;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow-card);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), transform var(--transition);
+}
+.btn-mute:hover { background: #fff; transform: scale(1.1); }
