@@ -3,9 +3,8 @@ import { state } from './state.js';
 // ── Screen management ───────────────────────────────────────────────────────
 
 export function showScreen(name) {
-  document.body.dataset.screen = name;
-  const el = document.getElementById(`screen-${name}`);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
+  document.documentElement.dataset.screen = name;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── Game phase management ───────────────────────────────────────────────────
