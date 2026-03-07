@@ -33,6 +33,16 @@ export function renderQuestion(index) {
     `Question ${index + 1} of ${state.questions.length}`;
   document.getElementById('category-label').textContent = q.category;
   document.getElementById('question-text').textContent = q.question;
+
+  const imgEl = document.getElementById('question-image');
+  if (q.image) {
+    imgEl.src = q.image;
+    imgEl.hidden = false;
+  } else {
+    imgEl.hidden = true;
+    imgEl.src = '';
+  }
+
   document.getElementById('answer-text').textContent = q.answer;
   document.getElementById('hint-text').textContent = q.hint || '';
   document.getElementById('answer-text').classList.remove('revealed');
