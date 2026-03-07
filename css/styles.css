@@ -45,7 +45,7 @@ body {
 [data-screen="welcome"] #screen-welcome { display: flex; }
 [data-screen="teams"]   #screen-teams   { display: flex; }
 [data-screen="game"]    #screen-game    { display: flex; }
-[data-screen="results"] #screen-results { display: block; }
+[data-screen="results"] #screen-results { display: flex; }
 
 /* ── Typography ───────────────────────────────────────────────────────────── */
 h1 {
