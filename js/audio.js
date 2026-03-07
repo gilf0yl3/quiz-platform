@@ -74,10 +74,13 @@ export function playTimeUp() {
 /** Two-note "ding-dong" cue when a new question appears */
 export function playNewQuestion() {
   if (_muted) return;
-  withRunningCtx(ctx => {
-    const t = ctx.currentTime;
-    tone(ctx, 880,    t,        0.35, 'sine', 0.3);
-    tone(ctx, 1318.5, t + 0.28, 0.45, 'sine', 0.28);
+  const ctx = getCtx();
+  if (!ctx) return;
+  // Await resume so tones aren't scheduled before context is running
+  ctx.resume().then(() => {
+    const t = ctx.currentTime + 0.05;
+    tone(ctx, 880,    t,       0.4, 'sine', 0.4);
+    tone(ctx, 1318.5, t + 0.3, 0.5, 'sine', 0.38);
   });
 }
 
