@@ -71,6 +71,17 @@ export function playTimeUp() {
   });
 }
 
+/** Short "ready" beep when the timer starts */
+export function playTimerStart() {
+  if (_muted) return;
+  withRunningCtx(ctx => {
+    const t = ctx.currentTime;
+    tone(ctx, 660, t,        0.08, 'square', 0.2);
+    tone(ctx, 660, t + 0.12, 0.08, 'square', 0.2);
+    tone(ctx, 990, t + 0.24, 0.18, 'square', 0.25);
+  });
+}
+
 /** Two-note "ding-dong" cue when a new question appears */
 export function playNewQuestion() {
   if (_muted) return;

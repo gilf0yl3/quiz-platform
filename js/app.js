@@ -7,7 +7,7 @@ import {
   updateTimerDisplay, renderResults
 } from './ui.js';
 import {
-  unlockAudio, playGameStart, playTimerTick, playTimeUp,
+  unlockAudio, playGameStart, playTimerStart, playTimerTick, playTimeUp,
   playNewQuestion, playPointAwarded, playNoAnswer, startLobbyMusic, startGameMusic, stopBackgroundMusic,
   toggleMute
 } from './audio.js';
@@ -136,6 +136,7 @@ function loadQuestion(index) {
 }
 
 function handleStartTimer() {
+  playTimerStart();
   setPhase('running');
   startTimer(
     TIMER_SECONDS,
