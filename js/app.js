@@ -8,7 +8,7 @@ import {
 } from './ui.js';
 import {
   unlockAudio, playGameStart, playTimerTick, playTimeUp,
-  playPointAwarded, startLobbyMusic, startGameMusic, stopBackgroundMusic,
+  playNewQuestion, playPointAwarded, startLobbyMusic, startGameMusic, stopBackgroundMusic,
   toggleMute
 } from './audio.js';
 
@@ -128,6 +128,7 @@ function startGame() {
 
 function loadQuestion(index) {
   stopTimer();
+  playNewQuestion();
   renderQuestion(index);
   renderScoreboard();
   setPhase('idle');

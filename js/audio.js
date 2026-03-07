@@ -71,6 +71,16 @@ export function playTimeUp() {
   });
 }
 
+/** Two-note "ding-dong" cue when a new question appears */
+export function playNewQuestion() {
+  if (_muted) return;
+  withRunningCtx(ctx => {
+    const t = ctx.currentTime;
+    tone(ctx, 880, t,        0.12, 'sine', 0.2);
+    tone(ctx, 1318.5, t + 0.14, 0.18, 'sine', 0.18);
+  });
+}
+
 /** Upward chime when a point is awarded */
 export function playPointAwarded() {
   if (_muted) return;
