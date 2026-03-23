@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vertical Jump Program</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #12121a;
+    --card-hover: #1a1a26;
+    --border: #1e1e2e;
+    --accent: #ff4d00;
+    --accent-glow: rgba(255, 77, 0, 0.15);
+    --accent2: #ff8c42;
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+    --text: #e8e8ed;
+    --text-dim: #6b6b80;
+    --text-mid: #9b9bb0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    position: relative;
+    padding: 60px 24px 40px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,77,0,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(255,77,0,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+    background: var(--accent-glow);
+  }
+
+  h1 {
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+  }
+
+  h1 .highlight {
+    color: var(--accent);
+    position: relative;
+  }
+
+  .hero-sub {
+    color: var(--text-mid);
+    font-size: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+    font-weight: 300;
+  }
+
+  /* Stats Strip */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin: 32px 16px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .stat {
+    background: var(--card);
+    padding: 20px 12px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(20px, 4vw, 28px);
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Tabs */
+  .tabs-container {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab:hover { color: var(--text); }
+
+  /* Content */
+  .content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Section Headers */
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 16px;
+  }
+
+  .section-head:first-child { margin-top: 0; }
+
+  .section-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .section-icon.orange { background: rgba(255,77,0,0.15); }
+  .section-icon.green { background: rgba(34,197,94,0.15); }
+  .section-icon.blue { background: rgba(59,130,246,0.15); }
+  .section-icon.purple { background: rgba(168,85,247,0.15); }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-mid);
+    margin: 24px 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  p, li {
+    color: var(--text-mid);
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+
+  p { margin-bottom: 12px; }
+
+  /* Exercise Cards */
+  .exercise {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+    transition: background 0.2s;
+  }
+
+  .exercise:hover { background: var(--card-hover); }
+
+  .ex-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ex-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .ex-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .ex-badge.power { background: rgba(255,77,0,0.15); color: var(--accent); }
+  .ex-badge.plyo { background: rgba(168,85,247,0.15); color: var(--purple); }
+  .ex-badge.strength { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .ex-badge.technique { background: rgba(34,197,94,0.15); color: var(--green); }
+
+  .ex-detail {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .ex-note {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-style: italic;
+  }
+
+  /* Day Cards */
+  .day-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .day-header {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  .day-header:hover { background: var(--card-hover); }
+
+  .day-title {
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .day-type {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .day-duration {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    background: rgba(255,140,66,0.1);
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .day-body {
+    padding: 0 16px 16px;
+    display: none;
+  }
+
+  .day-body.open { display: block; }
+
+  .chevron {
+    transition: transform 0.3s;
+    color: var(--text-dim);
+    font-size: 18px;
+  }
+
+  .chevron.open { transform: rotate(180deg); }
+
+  /* Phase indicator */
+  .phase-banner {
+    background: linear-gradient(135deg, rgba(255,77,0,0.1), rgba(255,140,66,0.05));
+    border: 1px solid rgba(255,77,0,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .phase-banner h2 {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  .phase-banner .phase-weeks {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  .phase-banner p {
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+  /* Progress Visual */
+  .progress-track {
+    display: flex;
+    gap: 4px;
+    margin: 24px 0;
+  }
+
+  .progress-block {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+  }
+
+  .progress-block.filled { background: var(--accent); }
+  .progress-block.half { background: var(--accent2); }
+
+  /* Key Points */
+  .key-point {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .kp-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 30px;
+  }
+
+  .kp-text {
+    font-size: 14px;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .kp-text strong { color: var(--text); font-weight: 600; }
+
+  /* Week table */
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin: 16px 0;
+  }
+
+  .week-cell {
+    text-align: center;
+    padding: 10px 4px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .week-cell.header {
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .week-cell.gym { background: rgba(255,77,0,0.12); color: var(--accent); }
+  .week-cell.home { background: rgba(168,85,247,0.12); color: var(--purple); }
+  .week-cell.rest { background: var(--card); color: var(--text-dim); }
+
+  /* Warning Box */
+  .warn-box {
+    background: rgba(255,77,0,0.06);
+    border-left: 3px solid var(--accent);
+    padding: 14px 16px;
+    border-radius: 0 10px 10px 0;
+    margin: 16px 0;
+  }
+
+  .warn-box p { margin: 0; font-size: 13.5px; }
+  .warn-box strong { color: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .week-grid { font-size: 10px; }
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero { animation: fadeUp 0.6s ease-out; }
+  .stats { animation: fadeUp 0.6s ease-out 0.1s both; }
+  .tabs-container { animation: fadeUp 0.4s ease-out 0.2s both; }
+  .content { animation: fadeUp 0.5s ease-out 0.3s both; }
+
+  .ex-video {
+    display: inline-block;
+    font-size: 11px;
+    color: #ff4d00;
+    text-decoration: none;
+    margin-top: 6px;
+    padding: 3px 8px;
+    border: 1px solid rgba(255,77,0,0.25);
+    border-radius: 5px;
+    transition: all 0.2s;
+    font-family: 'Space Mono', monospace;
+  }
+  .ex-video:hover { background: rgba(255,77,0,0.1); }
+  .ex-video::before { content: '▶ '; font-size: 9px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="tag">12-Week Program</div>
+  <h1>Unlock Your<br><span class="highlight">Vertical</span></h1>
+  <p class="hero-sub">A plyometric-dominant program built for your profile — converting your strong squat base into explosive jumping power and building full-depth strength.</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-val">72cm</div>
+    <div class="stat-label">Current Vert</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">92cm</div>
+    <div class="stat-label">Target Vert</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">+20cm</div>
+    <div class="stat-label">Gap to Dunk</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">4×/wk</div>
+    <div class="stat-label">Training</div>
+  </div>
+</div>
+
+<div class="tabs-container">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview')">Overview</button>
+    <button class="tab" onclick="showTab('phase1')">Phase 1</button>
+    <button class="tab" onclick="showTab('phase2')">Phase 2</button>
+    <button class="tab" onclick="showTab('phase3')">Phase 3</button>
+    <button class="tab" onclick="showTab('rules')">Rules</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- OVERVIEW PANEL -->
+  <div id="overview" class="panel active">
+
+    <div class="section-head">
+      <div class="section-icon orange">⚡</div>
+      <h2>Why This Will Work for You</h2>
+    </div>
+
+    <div class="key-point">
+      <div class="kp-num">01</div>
+      <div class="kp-text"><strong>You're strong, but with a depth gap.</strong> At 145 kg × 3-4 partial reps (~1.8× bodyweight), you have a solid strength base — but it's partial range. This program adds full-depth squat work to unlock that strength where it matters (bottom of the jump), while focusing most of your energy on explosive power and plyometrics where the biggest gains are.</div>
+    </div>
+    <div class="key-point">
+      <div class="kp-num">02</div>
+      <div class="kp-text"><strong>Untapped plyometric potential.</strong> You have almost zero plyometric training history. This means your stretch-shortening cycle (the elastic "spring" in your tendons) is undertrained. Beginners to plyometrics often see rapid early gains — 5-10 cm in the first 6 weeks is common.</div>
+    </div>
+    <div class="key-point">
+      <div class="kp-num">03</div>
+      <div class="kp-text"><strong>Technique is free centimeters.</strong> Your arm swing timing, penultimate step mechanics, and approach angle all contribute to jump height. Cleaning these up can add 3-5 cm with zero physical adaptation needed.</div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-icon blue">📅</div>
+      <h2>Weekly Structure</h2>
+    </div>
+
+    <div class="week-grid">
+      <div class="week-cell header">Mon</div>
+      <div class="week-cell header">Tue</div>
+      <div class="week-cell header">Wed</div>
+      <div class="week-cell header">Thu</div>
+      <div class="week-cell header">Fri</div>
+      <div class="week-cell header">Sat</div>
+      <div class="week-cell header">Sun</div>
+      <div class="week-cell home">HOME<br>Plyo</div>
+      <div class="week-cell rest">🏀<br>Bball</div>
+      <div class="week-cell gym">GYM<br>Power</div>
+      <div class="week-cell rest">🏀<br>Bball</div>
+      <div class="week-cell rest">Rest</div>
+      <div class="week-cell gym">GYM<br>Explosive</div>
+      <div class="week-cell home">HOME<br>Plyo+Tech</div>
+    </div>
+
+    <p>Two gym sessions (Wed & Sat) focus on explosive power. Monday is a short plyo session in Phase 1, then switches to active recovery in Phases 2 & 3. Sunday is your biggest home session — depth jumps, approach work, and technique. Basketball on Tue & Thu counts as reactive training. Friday is full rest.</p>
+
+    <div class="warn-box">
+      <p><strong>Important:</strong> Stop your morning single-leg squat routine. It's adding fatigue without the right stimulus for vertical gains. This program replaces it entirely.</p>
+    </div>
+
+    <div class="section-head">
+      <div class="section-icon green">📈</div>
+      <h2>3-Phase Progression</h2>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-block filled"></div>
+      <div class="progress-block filled"></div>
+      <div class="progress-block filled"></div>
+      <div class="progress-block filled"></div>
+      <div class="progress-block half"></div>
+      <div class="progress-block half"></div>
+      <div class="progress-block half"></div>
+      <div class="progress-block half"></div>
+      <div class="progress-block"></div>
+      <div class="progress-block"></div>
+      <div class="progress-block"></div>
+      <div class="progress-block"></div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top">
+        <div>
+          <div class="ex-name">Phase 1 — Build the Spring</div>
+          <div class="ex-detail">WEEKS 1–4</div>
+        </div>
+        <span class="ex-badge plyo">Foundation</span>
+      </div>
+      <div class="ex-note">Low-moderate intensity plyometrics, jump technique, explosive lifting. Teaching your body to be fast.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top">
+        <div>
+          <div class="ex-name">Phase 2 — Load the Spring</div>
+          <div class="ex-detail">WEEKS 5–8</div>
+        </div>
+        <span class="ex-badge power">Intensity</span>
+      </div>
+      <div class="ex-note">High-intensity depth jumps, weighted jumps, complex training (strength + jump pairings). Max power output.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top">
+        <div>
+          <div class="ex-name">Phase 3 — Release the Spring</div>
+          <div class="ex-detail">WEEKS 9–12</div>
+        </div>
+        <span class="ex-badge technique">Peaking</span>
+      </div>
+      <div class="ex-note">Reduced volume, max-effort jumps, approach work, specificity. Peaking for your highest vertical.</div>
+    </div>
+
+  </div>
+
+  <!-- PHASE 1 -->
+  <div id="phase1" class="panel">
+
+    <div class="phase-banner">
+      <h2>Phase 1 — Build the Spring</h2>
+      <div class="phase-weeks">Weeks 1–4 (Deload: Week 4)</div>
+      <p>Introduce plyometric stimulus, build reactive ability, learn explosive lifting patterns, and clean up jump mechanics. Intensity is moderate — quality over everything.</p>
+    </div>
+
+    <!-- DAY A -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day A — Gym: Power Development</div>
+          <div class="day-type">Wednesday • Gym Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~45 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Warm-Up (5 min)</h3>
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">Jump Rope + Leg Swings + Bodyweight Squats</div></div>
+          <div class="ex-detail">5 minutes total — get warm, get loose</div>
+        </div>
+
+        <h3>Power Block (20 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Jump Squats (barbell)</div>
+            <a href="https://www.youtube.com/results?search_query=barbell+jump+squat+tutorial" target="_blank" class="ex-video">Barbell Jump Squat Form</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">4 × 5 reps @ 30% of max squat (~40 kg / ~90 lbs)</div>
+          <div class="ex-note">Explode up as fast as possible. Land softly, reset fully between reps. Rest 2 min between sets. Speed is the goal — if the bar slows down, the weight is too heavy.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Trap Bar Jumps (or DB Jump Squats)</div>
+            <a href="https://www.youtube.com/results?search_query=trap+bar+jump+squat+tutorial" target="_blank" class="ex-video">Trap Bar Jump Tutorial</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">3 × 5 reps @ 30 kg / 65 lbs</div>
+          <div class="ex-note">Full triple extension (ankles, knees, hips). Land, absorb, stand, then go again. Rest 90 sec.</div>
+        </div>
+
+        <h3>Full-Depth Squat Work (10 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Paused Full-Depth Back Squat</div>
+            <a href="https://www.youtube.com/results?search_query=paused+back+squat+tutorial+full+depth" target="_blank" class="ex-video">Paused Squat Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">3 × 5 reps @ 80–90 kg / 175–200 lbs (pause 2 sec at bottom)</div>
+          <div class="ex-note">Go ALL the way down — hip crease below knee. Pause 2 seconds in the hole, then drive up. This builds strength in the range your current squat is missing. Start lighter than you think — depth is more important than load.</div>
+        </div>
+
+        <h3>Supplementary (10 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Heavy Standing Calf Raise</div>
+            <a href="https://www.youtube.com/results?search_query=heavy+standing+calf+raise+tutorial" target="_blank" class="ex-video">Heavy Calf Raise Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">3 × 5 reps @ heavy (smith machine or barbell)</div>
+          <div class="ex-note">Go heavy — near maximal effort. Full range: stretch at the bottom, explosive drive to the top, 1 sec hold. Calf strength correlates r = 0.57–0.71 with jump height and directly supports depth jump capacity in Phase 2. Rest 2 min.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Pogo Hops (ankle stiffness)</div>
+            <a href="https://www.youtube.com/results?search_query=pogo+hops+ankle+stiffness+vertical+jump" target="_blank" class="ex-video">Pogo Hop Form</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">3 × 12 reps — Rest 60 sec</div>
+          <div class="ex-note">Stiff ankles, minimal knee bend, fast ground contact. Quick bounce — think "hot floor".</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY B -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day B — Home: Plyometrics (Short)</div>
+          <div class="day-type">Monday • Home Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~20 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Warm-Up (5 min)</h3>
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">High Knees + Butt Kicks + Ankle Bounces</div></div>
+          <div class="ex-detail">2 min each + 1 min ankle hops in place</div>
+        </div>
+
+        <h3>Plyometric Block (10 min) — ~65 ground contacts</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Tuck Jumps</div>
+            <a href="https://www.youtube.com/results?search_query=tuck+jump+tutorial+vertical" target="_blank" class="ex-video">Tuck Jump Form</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">4 × 5 reps — Rest 90 sec</div>
+          <div class="ex-note">Jump as HIGH as possible, bring knees to chest at peak. Land softly, fully reset before next rep. No rushing. Max intent on every rep.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Broad Jumps (stick the landing)</div>
+            <a href="https://www.youtube.com/results?search_query=standing+broad+jump+tutorial" target="_blank" class="ex-video">Broad Jump Form</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">3 × 5 reps — Rest 90 sec</div>
+          <div class="ex-note">Max effort forward jump from standing. Focus on aggressive arm swing and full hip extension. Stick each landing for 2 seconds — no stumbling.</div>
+        </div>
+
+        <div class="warn-box">
+          <p><strong>Why only 2 exercises?</strong> Basketball on Tuesday already gives you 50-100+ reactive ground contacts. Monday is about quality plyometric stimulus with full recovery, not volume. Get in, do 35 max-effort jumps, get out.</p>
+        </div>
+
+        <h3>Cooldown</h3>
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">Calf Stretch + Hip Flexor Stretch + Ankle Circles</div></div>
+          <div class="ex-detail">5 minutes — hold each 30 sec</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY C -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day C — Gym: Explosive Strength</div>
+          <div class="day-type">Saturday • Gym Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~40 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Warm-Up (5 min)</h3>
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">Bodyweight Squat Jumps + Lateral Shuffles</div></div>
+          <div class="ex-detail">5 min — progressive intensity</div>
+        </div>
+
+        <h3>Explosive Block (20 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Hang High Pull</div>
+            <a href="https://www.youtube.com/results?search_query=hang+high+pull+tutorial+explosive" target="_blank" class="ex-video">Hang High Pull Form</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">5 × 3 reps @ 40–50 kg / 90–110 lbs</div>
+          <div class="ex-note">Same triple-extension power as a clean, but without the complex catch phase — much easier to learn. Start above knees, violently extend hips/knees/ankles, shrug and pull the bar to chest height. Let it come back down, reset. The bar doesn't need to reach your shoulders. Rest 2 min.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Speed Squats</div>
+            <a href="https://www.youtube.com/results?search_query=speed+squats+tutorial+explosive" target="_blank" class="ex-video">Speed Squat Form</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">5 × 3 reps @ 50% max (~65 kg / ~145 lbs) — FULL DEPTH</div>
+          <div class="ex-note">Down in 2 seconds to full depth, UP as FAST as possible. You're training rate of force development AND building full-range strength. Bands or chains are a bonus if available. Rest 90 sec.</div>
+        </div>
+
+        <h3>Supplementary (10 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Heavy Standing Calf Raise</div>
+            <a href="https://www.youtube.com/results?search_query=heavy+standing+calf+raise+tutorial" target="_blank" class="ex-video">Heavy Calf Raise Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">3 × 5 reps @ heavy (smith machine or barbell)</div>
+          <div class="ex-note">Same as Wednesday — building max plantar flexor strength. Full stretch at bottom, explosive up, 1 sec hold at top. Rest 2 min.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Seated Box Jump (from dead stop)</div>
+            <a href="https://www.youtube.com/results?search_query=seated+box+jump+tutorial" target="_blank" class="ex-video">Seated Box Jump</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">4 × 4 reps — Rest 90 sec</div>
+          <div class="ex-note">Sit on a bench, feet flat, pause 1 second — then EXPLODE onto a box. No pre-stretch. This trains pure concentric power.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY D -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day D — Home: Plyo + Technique</div>
+          <div class="day-type">Sunday • Home Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~35 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Approach Jump Practice (15 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">1-Step Approach Jumps</div>
+            <a href="https://www.youtube.com/results?search_query=one+step+approach+vertical+jump+basketball" target="_blank" class="ex-video">Approach Jump Technique</a>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">5 × 3 jumps — Rest 2 min</div>
+          <div class="ex-note">One strong penultimate step into a max vertical jump. Focus: plant heel first on the last step to convert horizontal speed into vertical lift. Arms swing UP hard. Film yourself to check form.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">2-Step Approach Jumps</div>
+            <a href="https://www.youtube.com/results?search_query=two+step+approach+jump+dunk+tutorial" target="_blank" class="ex-video">2-Step Approach</a>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">5 × 3 jumps — Rest 2 min</div>
+          <div class="ex-note">Left-right-jump (or right-left-jump). Last two steps should be quick and aggressive. The second-to-last step (penultimate) is longer, the last step is shorter and faster. Think "long-short-UP".</div>
+        </div>
+
+        <h3>Reactive Plyometrics (10 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Continuous Vertical Jumps</div>
+            <a href="https://www.youtube.com/results?search_query=continuous+vertical+jumps+plyometric" target="_blank" class="ex-video">Continuous Jumps</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">3 × 5 reps — Rest 2 min</div>
+          <div class="ex-note">Jump, land, immediately jump again. Minimal ground contact time. You're training the stretch-shortening cycle — the faster you reverse direction, the higher you'll jump.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Pogo Hops (bilateral)</div>
+            <a href="https://www.youtube.com/results?search_query=pogo+hops+ankle+stiffness+vertical+jump" target="_blank" class="ex-video">Pogo Hop Form</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">3 × 15 reps — Rest 60 sec</div>
+          <div class="ex-note">Both feet, stiff ankles, quick bounce. Single-leg pogos produce ~5× bodyweight force — too intense for Phase 1. Build the spring with bilateral work first. Single-leg comes in Phase 2.</div>
+        </div>
+
+        <h3>Penultimate Step Drill (5 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Penultimate Step Walk-Throughs</div>
+            <a href="https://www.youtube.com/results?search_query=penultimate+step+vertical+jump+drill" target="_blank" class="ex-video">Penultimate Step Drill</a>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">8–10 slow walk-through reps</div>
+          <div class="ex-note">This is the #1 technique for free centimeters. Walk through the last 3 steps of your approach in slow motion: long penultimate step (sit into it, ~90° knee bend, heel contacts first) → short fast final step → explode UP. Your penultimate step should be your LONGEST step. Practice until the rhythm feels automatic before adding speed. Film yourself from the side.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <p><strong>Week 4 Deload:</strong> Do the same sessions but cut sets in half (e.g., 4 sets → 2 sets). Same intensity, half the volume. Your body adapts during rest, not during training.</p>
+    </div>
+
+  </div>
+
+  <!-- PHASE 2 -->
+  <div id="phase2" class="panel">
+
+    <div class="phase-banner">
+      <h2>Phase 2 — Load the Spring</h2>
+      <div class="phase-weeks">Weeks 5–8 (Deload: Week 8)</div>
+      <p>Intensity ramps up. Weeks 5–6 introduce depth drops (landings only) to prepare your tendons. Weeks 7–8 progress to actual depth jumps at 30 cm. Complex training pairs moderate squats with max jumps. This is where the big gains happen.</p>
+    </div>
+
+    <!-- DAY A -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day A — Gym: Complex Power</div>
+          <div class="day-type">Wednesday • Gym Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~45 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Complex Pair 1 (15 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">A1: Heavy Squat</div>
+            <a href="https://www.youtube.com/results?search_query=heavy+back+squat+form+tutorial" target="_blank" class="ex-video">Heavy Squat Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">3 × 2 reps @ 75–80% (95–105 kg / 210–230 lbs) — FULL DEPTH</div>
+          <div class="ex-note">Moderate-heavy, not maximal. Research shows 70–80% 1RM potentiates jumps better than near-max loads (less fatigue, same neural activation). Full depth.</div>
+        </div>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">A2: Max Vertical Jump (after 5–8 min rest)</div>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">3 × 3 max jumps</div>
+          <div class="ex-note">Wait 5–8 minutes after the squat. Yes, that long — research shows this is the optimal window for post-activation potentiation. Use the time to do light stretching or visualize. You should feel "springy" and explosive. Rest 3 min before next complex pair.</div>
+        </div>
+
+        <h3>Complex Pair 2 (15 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">B1: Hang High Pull</div>
+            <a href="https://www.youtube.com/results?search_query=hang+high+pull+tutorial+explosive" target="_blank" class="ex-video">Hang High Pull Form</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">4 × 3 reps @ 50–60 kg / 110–135 lbs</div>
+        </div>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">B2: Tuck Jumps (after 90 sec rest)</div>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">4 × 5 reps</div>
+          <div class="ex-note">Same principle. High pull fires the system, tuck jumps exploit it.</div>
+        </div>
+
+        <h3>Finisher (5 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Heavy Standing Calf Raise</div>
+            <a href="https://www.youtube.com/results?search_query=heavy+standing+calf+raise+tutorial" target="_blank" class="ex-video">Heavy Calf Raise Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">3 × 4 reps @ near max — Rest 2 min</div>
+          <div class="ex-note">Heavy and explosive. Full stretch at bottom, drive up hard. This supports your depth jump capacity.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY B -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day B — Active Recovery</div>
+          <div class="day-type">Monday • Recovery Day</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~15 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Recovery Work Only</h3>
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">Foam Rolling (quads, calves, glutes)</div></div>
+          <div class="ex-detail">5 minutes — 30 sec per area</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">Hip Flexor + Calf + Ankle Stretching</div></div>
+          <div class="ex-detail">5 minutes — hold each 30 sec</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">Light Ankle Circles + Bodyweight Squats</div></div>
+          <div class="ex-detail">5 minutes — keep it easy</div>
+        </div>
+
+        <div class="warn-box">
+          <p><strong>Why no plyos on Monday in Phase 2?</strong> Phase 2 introduces depth jumps on Sunday and heavy complex training on Wednesday. Basketball on Tue/Thu adds ~100+ ground contacts. Dropping Monday plyos keeps your weekly stress manageable and protects your knees and Achilles from overuse. Your body adapts during rest, not during training.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY C -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day C — Gym: Speed-Strength</div>
+          <div class="day-type">Saturday • Gym Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~40 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Speed-Strength Block (25 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Jump Squats</div>
+            <a href="https://www.youtube.com/results?search_query=barbell+jump+squat+tutorial" target="_blank" class="ex-video">Jump Squat Form</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">5 × 3 reps @ 40% (~50 kg / ~110 lbs)</div>
+          <div class="ex-note">Slightly heavier than Phase 1. Max velocity on every rep. Rest 2 min.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Single-Leg Box Jump</div>
+            <a href="https://www.youtube.com/results?search_query=single+leg+box+jump+tutorial" target="_blank" class="ex-video">SL Box Jump</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">4 × 3/leg — Rest 90 sec</div>
+          <div class="ex-note">Single-leg takeoff onto a box. Start with a modest height and increase as you gain confidence. This mimics the one-foot dunk approach.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Seated Box Jump</div>
+            <a href="https://www.youtube.com/results?search_query=seated+box+jump+tutorial" target="_blank" class="ex-video">Seated Box Jump</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">4 × 3 reps — Rest 2 min</div>
+          <div class="ex-note">Dead-stop concentric power. Aim higher than Phase 1.</div>
+        </div>
+
+        <h3>Supplementary (10 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Nordic Hamstring Curls</div>
+            <a href="https://www.youtube.com/results?search_query=nordic+hamstring+curl+beginner+tutorial" target="_blank" class="ex-video">Nordic Curl Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">3 × 4–6 reps (assisted if needed)</div>
+          <div class="ex-note">Injury prevention. Strong hamstrings protect your knees during high-impact plyos and absorb landing forces.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Heavy Standing Calf Raise</div>
+            <a href="https://www.youtube.com/results?search_query=heavy+standing+calf+raise+tutorial" target="_blank" class="ex-video">Heavy Calf Raise Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">3 × 4 reps @ near max — Rest 2 min</div>
+          <div class="ex-note">Heavy and explosive. Supports your depth jump performance on Sunday.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY D -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day D — Home: Depth Work + Technique</div>
+          <div class="day-type">Sunday • Home Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~40 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Depth Block (15 min) — Progressive Over 4 Weeks</h3>
+
+        <div class="warn-box">
+          <p><strong>Weeks 5–6:</strong> Do Depth DROPS only (land and stick, no jump). <strong>Weeks 7–8:</strong> Progress to full Depth Jumps at 30 cm. Only increase height if your rebound jump is within 2-3 cm of your standing vertical.</p>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Depth Drops → Depth Jumps</div>
+            <a href="https://www.youtube.com/results?search_query=depth+drop+landing+to+depth+jump+progression" target="_blank" class="ex-video">Depth Drop → Jump Progression</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">Wk 5–6: 4 × 4 DROPS from 30 cm (land & stick 2 sec) | Wk 7–8: 4 × 4 JUMPS from 30 cm</div>
+          <div class="ex-note">Weeks 5–6: Step off 30 cm, land as quietly as possible in a half squat, HOLD 2 seconds. No jump. You're teaching your tendons to absorb high forces. Weeks 7–8: Same setup but now EXPLODE up immediately on landing. Minimum ground contact time. If your rebound height drops more than 3 cm below your standing vertical, the box is too high.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Depth Jump to Broad Jump</div>
+            <a href="https://www.youtube.com/results?search_query=depth+jump+to+broad+jump+plyometric" target="_blank" class="ex-video">Depth to Broad Jump</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">Wk 7–8 only: 3 × 3 reps from 30 cm — Rest 2 min</div>
+          <div class="ex-note">Only add this in Weeks 7–8 once you've mastered the depth drops. Jump forward instead of up. Trains horizontal-to-vertical power transfer for your approach.</div>
+        </div>
+
+        <h3>Approach + Penultimate Work (15 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Penultimate Step Drills (at speed)</div>
+            <a href="https://www.youtube.com/results?search_query=penultimate+step+vertical+jump+drill" target="_blank" class="ex-video">Penultimate Step Drill</a>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">5 × 2 reps — Rest 90 sec</div>
+          <div class="ex-note">Now add speed to the walk-throughs from Phase 1. Jog into the penultimate (long step, heel first, sit into ~90° knee bend) → short fast final step → MAX jump. Focus: the penultimate step should LOAD you like a spring. If you feel like you're braking, you're doing it right — that brake converts horizontal speed into vertical.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">3-Step Approach Max Jumps</div>
+            <a href="https://www.youtube.com/results?search_query=approach+jump+vertical+dunk+tutorial" target="_blank" class="ex-video">Approach Jump Technique</a>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">5 × 2 jumps — Rest 2.5 min</div>
+          <div class="ex-note">Full speed approach. The penultimate drill above should be clicking now — apply it here.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Rim Touch Practice (if near a court)</div>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">5 × 2 max attempts — Full rest</div>
+          <div class="ex-note">Track your reach height. This is your weekly progress check.</div>
+        </div>
+
+        <h3>Single-Leg Reactive Work (5 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Single-Leg Pogo Hops</div>
+            <a href="https://www.youtube.com/results?search_query=single+leg+pogo+hops+tutorial" target="_blank" class="ex-video">SL Pogo Hops</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">2 × 5/leg — Rest 60 sec</div>
+          <div class="ex-note">Now you're ready for single-leg reactive work. Low volume (5 per leg), focus on stiff ankle and fast ground contact. These produce ~5× bodyweight force — respect them.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <p><strong>Week 8 Deload:</strong> Cut volume in half again. No depth jumps during deload week. Replace with light approach work and pogo hops only.</p>
+    </div>
+
+  </div>
+
+  <!-- PHASE 3 -->
+  <div id="phase3" class="panel">
+
+    <div class="phase-banner">
+      <h2>Phase 3 — Release the Spring</h2>
+      <div class="phase-weeks">Weeks 9–12 (Taper: Weeks 11–12)</div>
+      <p>Volume drops, intensity stays high, specificity peaks. You're sharpening the blade now — every jump should feel like a max attempt. This is where you test your new vertical.</p>
+    </div>
+
+    <!-- DAY A -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day A — Gym: Peak Power</div>
+          <div class="day-type">Wednesday • Gym Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~35 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>PAP Complex (20 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">A1: Heavy Squat</div>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">2 × 1 rep @ 90–95% (115–125 kg / 255–275 lbs) — FULL DEPTH</div>
+          <div class="ex-note">Singles only at full depth. Maximum neural activation with minimal fatigue. By now your full-depth squat should be significantly improved.</div>
+        </div>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">A2: Max Vertical Jump (5–8 min after squat)</div>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">2 × 3 max effort jumps</div>
+          <div class="ex-note">Wait 5–8 minutes after the single. Touch something, mark your height. Track your progress. You're peaking now — these should be your highest jumps yet. Full rest between sets (3+ min).</div>
+        </div>
+
+        <h3>Explosive Maintenance (10 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Jump Squats (light)</div>
+            <a href="https://www.youtube.com/results?search_query=barbell+jump+squat+tutorial" target="_blank" class="ex-video">Jump Squat Form</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">3 × 3 reps @ 30% (~40 kg / ~90 lbs)</div>
+          <div class="ex-note">Pure speed. You're maintaining power, not building new strength.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Pogo Hops</div>
+            <a href="https://www.youtube.com/results?search_query=pogo+hops+ankle+stiffness+vertical+jump" target="_blank" class="ex-video">Pogo Hop Form</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">2 × 15</div>
+          <div class="ex-note">Keep the ankle stiffness sharp.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY B -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day B — Active Recovery</div>
+          <div class="day-type">Monday • Recovery Day</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~15 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Recovery Work Only</h3>
+        <div class="exercise">
+          <div class="ex-top"><div class="ex-name">Foam Rolling + Light Stretching + Ankle Mobility</div></div>
+          <div class="ex-detail">15 minutes — keep it easy, stay fresh for the week</div>
+        </div>
+
+        <div class="warn-box">
+          <p><strong>Phase 3 = less is more.</strong> You're peaking. Every ounce of energy goes toward Wednesday gym, Saturday gym, and Sunday dunk practice. Monday is pure recovery. If you feel great, resist the urge to do more — trust the taper.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY C -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day C — Gym: Specificity</div>
+          <div class="day-type">Saturday • Gym Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~30 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Specific Power (20 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Hang High Pull</div>
+            <a href="https://www.youtube.com/results?search_query=hang+high+pull+tutorial+explosive" target="_blank" class="ex-video">Hang High Pull Form</a>
+            <span class="ex-badge power">Power</span>
+          </div>
+          <div class="ex-detail">4 × 2 reps @ 60–65 kg / 135–145 lbs</div>
+          <div class="ex-note">Heaviest you can go with perfect speed and full triple extension. Rest 2.5 min.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Single-Leg Box Jump (max height)</div>
+            <a href="https://www.youtube.com/results?search_query=single+leg+box+jump+tutorial" target="_blank" class="ex-video">SL Box Jump</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">3 × 2/leg — Full rest</div>
+          <div class="ex-note">Progressive box height. Find your max. This is your one-foot takeoff simulator.</div>
+        </div>
+
+        <h3>Maintenance (5 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Nordic Curls</div>
+            <a href="https://www.youtube.com/results?search_query=nordic+hamstring+curl+beginner+tutorial" target="_blank" class="ex-video">Nordic Curl Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">2 × 5</div>
+          <div class="ex-note">Keep the hamstrings protected.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Heavy Standing Calf Raise</div>
+            <a href="https://www.youtube.com/results?search_query=heavy+standing+calf+raise+tutorial" target="_blank" class="ex-video">Heavy Calf Raise Form</a>
+            <span class="ex-badge strength">Strength</span>
+          </div>
+          <div class="ex-detail">2 × 4 reps @ heavy</div>
+          <div class="ex-note">Maintenance volume. Keep the calves strong for Sunday's depth jumps.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY D -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-title">Day D — Court: Depth Jumps + Dunk Practice</div>
+          <div class="day-type">Sunday • Court Session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-duration">~40 min</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <h3>Peak Depth Jumps (10 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Depth Jumps (max height)</div>
+            <a href="https://www.youtube.com/results?search_query=depth+jump+tutorial+vertical" target="_blank" class="ex-video">Depth Jump Form</a>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">3 × 3 from 40 cm — Rest 3 min</div>
+          <div class="ex-note">You earned this height. Lower volume, maximum effort. Only progress to 45-50 cm if your rebound height is within 2-3 cm of your standing vertical AND ground contact time feels instant. If not, stay at 40 cm — intensity matters more than box height.</div>
+        </div>
+
+        <h3>Full Approach Dunk Prep (25 min)</h3>
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Full Approach Max Jumps at Rim</div>
+            <a href="https://www.youtube.com/results?search_query=basketball+approach+jump+dunk+technique" target="_blank" class="ex-video">Approach Technique</a>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">8 × 1 max attempt — Rest 3 min</div>
+          <div class="ex-note">Full game-speed approach, max jump, reach as high as possible. Track your height each attempt. This IS the skill you're building toward. Full recovery between attempts — treat each like a PR attempt.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Dunk Attempts (with tennis ball first)</div>
+            <a href="https://www.youtube.com/results?search_query=how+to+dunk+tennis+ball+first+dunk+tutorial" target="_blank" class="ex-video">First Dunk Tutorial</a>
+            <span class="ex-badge technique">Technique</span>
+          </div>
+          <div class="ex-detail">5–8 attempts — Full rest</div>
+          <div class="ex-note">Start with a tennis ball — practice the full motion of approaching, jumping, and throwing down. Once consistent, move to a volleyball, then the basketball. The palming and timing is a skill too.</div>
+        </div>
+
+        <div class="exercise">
+          <div class="ex-top">
+            <div class="ex-name">Pogo Hops (cooldown)</div>
+            <span class="ex-badge plyo">Plyo</span>
+          </div>
+          <div class="ex-detail">2 × 15</div>
+          <div class="ex-note">Light, keeping the ankles primed.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <p><strong>Weeks 11–12 Taper:</strong> Cut total training to 3 days/week. Drop home plyos to just approach jumps. Gym sessions become 1 PAP complex + 1 power movement. You should feel FRESH and explosive — not tired. Test your max vertical at end of Week 12.</p>
+    </div>
+
+  </div>
+
+  <!-- RULES PANEL -->
+  <div id="rules" class="panel">
+
+    <div class="section-head">
+      <div class="section-icon orange">🎯</div>
+      <h2>The Non-Negotiables</h2>
+    </div>
+
+    <div class="key-point">
+      <div class="kp-num">01</div>
+      <div class="kp-text"><strong>Every rep is max effort.</strong> Plyometrics at 70% effort are just cardio. If you're not trying to jump as high as humanly possible on every rep, you're wasting your time. Do fewer reps with full intent rather than more reps while tired.</div>
+    </div>
+
+    <div class="key-point">
+      <div class="kp-num">02</div>
+      <div class="kp-text"><strong>Rest fully between sets.</strong> This is not HIIT. Power training requires complete nervous system recovery. If you're breathing hard, wait longer. 2-3 minutes minimum between plyometric sets.</div>
+    </div>
+
+    <div class="key-point">
+      <div class="kp-num">03</div>
+      <div class="kp-text"><strong>Stop the set when speed drops.</strong> If your 4th rep feels slower than your 1st, the set is over. End it. More slow reps don't make you faster — they make you better at being slow.</div>
+    </div>
+
+    <div class="key-point">
+      <div class="kp-num">04</div>
+      <div class="kp-text"><strong>Sleep 7-8+ hours.</strong> Your nervous system adapts during deep sleep. Training 5 days a week on 5 hours of sleep will burn you out and stall progress. This is as important as the training itself.</div>
+    </div>
+
+    <div class="key-point">
+      <div class="kp-num">05</div>
+      <div class="kp-text"><strong>Don't add extra work.</strong> No morning split squats, no extra basketball runs on rest days, no "just a quick leg session." The program is designed to maximize stimulus with minimum fatigue. Adding more breaks it.</div>
+    </div>
+
+    <div class="key-point">
+      <div class="kp-num">06</div>
+      <div class="kp-text"><strong>Track your jumps.</strong> Every Saturday, after your approach jumps, mark the wall or note your rim reach. Progress isn't always linear — you might plateau for 2 weeks then jump 3 cm overnight. The trend is what matters.</div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-icon green">🔧</div>
+      <h2>Technique Cues Cheat Sheet</h2>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Arm Swing</div>
+            <a href="https://www.youtube.com/results?search_query=arm+swing+vertical+jump+technique" target="_blank" class="ex-video">Arm Swing Tutorial</a></div>
+      <div class="ex-note">Arms go from behind your hips to overhead in one violent swing. Think about punching the ceiling. This alone can add 3-5 cm. Practice it standing still first — arms back, swing up, rise onto toes.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Penultimate Step</div>
+            <a href="https://www.youtube.com/results?search_query=penultimate+step+vertical+jump+technique" target="_blank" class="ex-video">Penultimate Step Tutorial</a></div>
+      <div class="ex-note">The second-to-last step of your approach should be your LONGEST step. You're loading the spring. The last step is short and fast — it's the trigger, not the load. Pattern: long → short → UP.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Heel-to-Toe Plant</div>
+            <a href="https://www.youtube.com/results?search_query=heel+toe+plant+vertical+jump+approach" target="_blank" class="ex-video">Heel-Toe Plant Tutorial</a></div>
+      <div class="ex-note">On your final step, your heel hits first, then rolls to the ball of your foot as you take off. This converts your horizontal run-up speed into vertical lift. If you plant flat-footed, you lose energy. If you're on your toes, you can't brake hard enough.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Hip Extension</div>
+            <a href="https://www.youtube.com/results?search_query=hip+extension+vertical+jump+takeoff" target="_blank" class="ex-video">Hip Extension Tutorial</a></div>
+      <div class="ex-note">At takeoff, your hips should fully extend — think about driving your hips THROUGH the ceiling. Many jumpers leave their hips behind. Full hip extension + arm swing = max height.</div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-icon blue">🍽️</div>
+      <h2>Nutrition Notes</h2>
+    </div>
+
+    <p>At 72 kg and 179 cm, you're at a good weight-to-height ratio for jumping. Don't try to bulk up — every extra kilogram of non-functional mass is a kilogram you have to lift off the ground.</p>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Protein</div></div>
+      <div class="ex-note">1.6–2.0 g per kg bodyweight (115–145 g/day). This supports tendon remodeling from the plyometric stress. Tendons adapt slower than muscles — protein helps.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Carbs Around Training</div></div>
+      <div class="ex-note">Explosive training runs on glycogen. Have a carb-rich meal 1-2 hours before training and refuel after. Don't train fasted for this program.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Creatine (optional)</div></div>
+      <div class="ex-note">5g daily. One of the very few supplements with solid evidence for improving power output. Cheap, safe, effective. Take it any time of day with water.</div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-icon purple">⚠️</div>
+      <h2>Red Flags — When to Pull Back</h2>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Sharp knee or Achilles pain</div></div>
+      <div class="ex-note">Dull soreness is normal. Sharp or pinpoint pain is not. If either knee or Achilles hurts sharply during jumps, take 3-4 days off plyometrics and do light cycling or walking only. If it persists, see a physio before returning.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Feeling "flat" for more than a week</div></div>
+      <div class="ex-note">If you feel heavy and sluggish for 5+ consecutive training days, take an unscheduled deload (3-4 days of rest). Overreaching kills vertical gains faster than anything.</div>
+    </div>
+
+    <div class="exercise">
+      <div class="ex-top"><div class="ex-name">Shin splints</div></div>
+      <div class="ex-note">Common when starting plyometrics. Train on softer surfaces (grass, rubber gym floor) instead of concrete. If it develops, reduce pogo hop volume first.</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.tabs-container').offsetTop, behavior: 'smooth' });
+}
+
+function toggleDay(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+// Open first day card in each phase by default
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.day-card:first-child .day-body').forEach(b => b.classList.add('open'));
+  document.querySelectorAll('.day-card:first-child .chevron').forEach(c => c.classList.add('open'));
+});
+</script>
+
+</body>
+</html>
