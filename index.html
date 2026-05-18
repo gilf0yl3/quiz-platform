@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2v2 Court Rotation</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e8782b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="2v2 Court">
+<link rel="apple-touch-icon" id="ati" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -93,6 +99,44 @@
   .empty{text-align:center;padding:50px 20px;color:var(--muted);
     font-family:'Barlow Semi Condensed',sans-serif;font-size:1.1rem}
   footer{margin-top:34px;color:var(--muted);font-size:.82rem;text-align:center;line-height:1.7}
+
+  /* ── Install button (Android/Chrome) ── */
+  #installBtn{
+    display:none;align-items:center;gap:9px;background:var(--court);color:#fff;
+    border:none;border-radius:10px;padding:10px 18px;cursor:pointer;
+    font-family:'Barlow Semi Condensed',sans-serif;font-weight:700;font-size:.95rem;
+    letter-spacing:.04em;text-transform:uppercase;transition:opacity .15s ease;
+  }
+  #installBtn:hover{opacity:.88}
+  #installBtn svg{flex-shrink:0}
+
+  /* ── iOS "Add to Home Screen" banner ── */
+  #iosBanner{
+    display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;
+    background:var(--panel);border-top:2px solid var(--court);
+    padding:18px 20px 28px;
+    box-shadow:0 -6px 32px rgba(0,0,0,.55);
+  }
+  .ios-row{display:flex;align-items:center;gap:14px}
+  #iosIcon{border-radius:14px;flex-shrink:0;width:56px;height:56px}
+  .ios-text{display:flex;flex-direction:column;gap:5px}
+  .ios-text strong{font-family:'Barlow Semi Condensed',sans-serif;font-weight:700;font-size:1rem}
+  .ios-text span{color:var(--muted);font-size:.88rem;line-height:1.4}
+  .ios-text .share{display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border:1.5px solid var(--muted);border-radius:5px;
+    vertical-align:middle;margin:0 2px;position:relative;top:-1px}
+  .ios-text .share svg{display:block}
+  #iosClose{
+    position:absolute;top:10px;right:14px;background:none;border:none;
+    color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer;padding:4px 8px;
+  }
+  #iosClose:hover{color:var(--ink)}
+  .ios-arrow{
+    text-align:center;margin-top:10px;color:var(--court);
+    font-size:.78rem;letter-spacing:.08em;font-family:'Barlow Semi Condensed',sans-serif;
+    text-transform:uppercase;font-weight:600;
+  }
+
   @media(max-width:560px){
     .vs{display:block;padding:2px 0}
     tbody td{padding:11px 7px;font-size:.92rem}
@@ -103,9 +147,30 @@
 <body>
 <div class="wrap">
 
+  <!-- iOS Add-to-Home-Screen banner -->
+  <div id="iosBanner" role="dialog" aria-label="Add to Home Screen">
+    <button id="iosClose" aria-label="Dismiss">×</button>
+    <div class="ios-row">
+      <canvas id="iosIcon" width="56" height="56"></canvas>
+      <div class="ios-text">
+        <strong>Add to Home Screen</strong>
+        <span>Tap <span class="share"><svg width="13" height="15" viewBox="0 0 13 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5,0 6.5,9"/><polyline points="3,3 6.5,0 10,3"/><path d="M1 6v7h11V6"/></svg></span> then <em>"Add to Home Screen"</em></span>
+      </div>
+    </div>
+    <div class="ios-arrow">▼ Tap the share button at the bottom of Safari ▼</div>
+  </div>
+
   <header>
-    <h1>2v2<span class="accent">Court Rotation</span></h1>
-    <p class="sub">Tap a player off if they're a no-show. The schedule rebuilds and re-orders so nobody ever rests two games in a row.</p>
+    <div>
+      <h1>2v2<span class="accent">Court Rotation</span></h1>
+      <p class="sub">Tap a player off if they're a no-show. The schedule rebuilds and re-orders so nobody ever rests two games in a row.</p>
+    </div>
+    <button id="installBtn" aria-label="Install app">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 2v9M5 7l4 4 4-4"/><rect x="2" y="12" width="14" height="4" rx="1"/>
+      </svg>
+      Add to Home Screen
+    </button>
   </header>
 
   <div class="panel">
@@ -309,6 +374,156 @@ function render(){
   });
 }
 render();
+
+/* ── PWA: icon generation + install logic ── */
+(function(){
+  /* Draw the group-at-sunset icon onto a canvas and return a PNG data URL */
+  function drawIcon(canvas){
+    const w=canvas.width, h=canvas.height, s=w/512;
+    const c=canvas.getContext('2d');
+    const S=v=>v*s;
+
+    /* rounded rect clip */
+    const r=S(108);
+    c.beginPath();
+    c.moveTo(r,0); c.lineTo(w-r,0); c.arcTo(w,0,w,r,r);
+    c.lineTo(w,h-r); c.arcTo(w,h,w-r,h,r);
+    c.lineTo(r,h); c.arcTo(0,h,0,h-r,r);
+    c.lineTo(0,r); c.arcTo(0,0,r,0,r);
+    c.closePath(); c.clip();
+
+    /* sky */
+    const sky=c.createLinearGradient(0,0,0,h);
+    sky.addColorStop(0,'#c05818'); sky.addColorStop(.4,'#e8782b'); sky.addColorStop(1,'#f5b05a');
+    c.fillStyle=sky; c.fillRect(0,0,w,h);
+
+    /* sun */
+    c.beginPath(); c.arc(S(256),S(258),S(58),0,Math.PI*2);
+    c.fillStyle='rgba(253,232,160,.6)'; c.fill();
+    c.beginPath(); c.arc(S(256),S(258),S(40),0,Math.PI*2);
+    c.fillStyle='rgba(255,244,200,.85)'; c.fill();
+
+    /* far mountains */
+    c.beginPath();
+    [[0,362],[85,222],[158,288],[242,206],[326,274],[408,212],[512,254],[512,425],[0,425]]
+      .forEach(([x,y],i)=>i?c.lineTo(S(x),S(y)):c.moveTo(S(x),S(y)));
+    c.fillStyle='rgba(130,152,176,.55)'; c.fill();
+
+    /* near mountains */
+    c.beginPath();
+    [[0,408],[55,312],[118,360],[182,280],[250,330],[318,264],[385,310],[450,260],[512,292],[512,458],[0,458]]
+      .forEach(([x,y],i)=>i?c.lineTo(S(x),S(y)):c.moveTo(S(x),S(y)));
+    c.fillStyle='#526a84'; c.fill();
+
+    /* ground */
+    c.beginPath(); c.moveTo(0,S(458));
+    c.bezierCurveTo(S(82),S(396),S(182),S(379),S(256),S(367));
+    c.bezierCurveTo(S(330),S(379),S(430),S(396),w,S(458));
+    c.lineTo(w,h); c.lineTo(0,h); c.fillStyle='#182535'; c.fill();
+
+    /* people */
+    c.fillStyle='#182535';
+    function person(cx,gy,hr,raisedArm,pole){
+      const headY=gy-hr*2-S(80), bT=headY+hr, bB=bT+S(65), lB=bB+S(42);
+      const sw=hr*1.2, hw=hr*.85;
+      c.beginPath(); c.arc(S(cx),headY,hr,0,Math.PI*2); c.fill();
+      c.beginPath();
+      c.moveTo(S(cx)-sw,bT); c.lineTo(S(cx)+sw,bT);
+      c.lineTo(S(cx)+hw,bB); c.lineTo(S(cx)-hw,bB); c.closePath(); c.fill();
+      [[S(cx)-hw,S(cx)-hw*.25],[S(cx)+hw*.25,S(cx)+hw]].forEach(([a,b])=>{
+        c.beginPath(); c.moveTo(a,bB); c.lineTo(a,lB); c.lineTo(b,lB); c.lineTo(b,bB); c.closePath(); c.fill();
+      });
+      c.lineCap='round';
+      if(raisedArm){
+        /* V-sign */
+        [[S(cx)-sw, bT+S(10), S(cx)-sw-S(22), headY-S(18)],
+         [S(cx)+sw, bT+S(10), S(cx)+sw+S(12), bT+S(38)]].forEach(([x1,y1,x2,y2])=>{
+          c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2);
+          c.strokeStyle='#182535'; c.lineWidth=S(10); c.stroke();
+        });
+        /* two fingers */
+        const ax=S(cx)-sw-S(22), ay=headY-S(18);
+        [[ax,ay,ax-S(10),ay-S(22)],[ax,ay,ax+S(8),ay-S(22)]].forEach(([x1,y1,x2,y2])=>{
+          c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2);
+          c.lineWidth=S(7); c.stroke();
+        });
+      } else {
+        [[S(cx)-sw,bT+S(10),S(cx)-sw-S(15),bT+S(36)],
+         [S(cx)+sw,bT+S(10),S(cx)+sw+S(15),bT+S(36)]].forEach(([x1,y1,x2,y2])=>{
+          c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2);
+          c.strokeStyle='#182535'; c.lineWidth=S(10); c.stroke();
+        });
+      }
+      if(pole){
+        c.beginPath();
+        c.moveTo(S(cx)+sw+S(5),bT+S(15));
+        c.lineTo(S(cx)+sw+S(22),lB+S(12));
+        c.strokeStyle='#182535'; c.lineWidth=S(5); c.stroke();
+      }
+    }
+    const gy=S(450);
+    person(138,gy,S(18),true,false);
+    person(181,gy,S(17),false,false);
+    person(219,gy,S(17),false,false);
+    person(257,gy,S(18),false,false);
+    person(295,gy,S(17),false,false);
+    person(340,gy,S(18),false,true);
+
+    /* birds */
+    c.strokeStyle='#182535'; c.lineWidth=S(3.5); c.lineCap='round';
+    [[334,116,16],[353,103,18],[374,120,14]].forEach(([x,y,size])=>{
+      c.beginPath();
+      c.moveTo(S(x),S(y));
+      c.quadraticCurveTo(S(x+size/2),S(y-size*.45),S(x+size),S(y));
+      c.stroke();
+    });
+  }
+
+  /* Generate icon and wire up apple-touch-icon */
+  function setupIcon(){
+    const cv=document.createElement('canvas');
+    cv.width=cv.height=512;
+    try{
+      drawIcon(cv);
+      const url=cv.toDataURL('image/png');
+      document.getElementById('ati').href=url;
+      /* also render the banner preview icon */
+      const bi=document.getElementById('iosIcon');
+      if(bi){ bi.width=bi.height=56; drawIcon(bi); }
+    }catch(e){}
+  }
+
+  /* iOS detection + banner */
+  function setupIOS(){
+    const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    const standalone=window.navigator.standalone;
+    if(!isIOS||standalone||localStorage.getItem('pwa-dismissed')) return;
+    document.getElementById('iosBanner').style.display='block';
+    document.getElementById('iosClose').addEventListener('click',()=>{
+      localStorage.setItem('pwa-dismissed','1');
+      document.getElementById('iosBanner').style.display='none';
+    });
+  }
+
+  /* Android / Chrome install prompt */
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault(); deferredPrompt=e;
+    document.getElementById('installBtn').style.display='flex';
+  });
+  document.getElementById('installBtn').addEventListener('click',async()=>{
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const{outcome}=await deferredPrompt.userChoice;
+    deferredPrompt=null;
+    if(outcome==='accepted') document.getElementById('installBtn').style.display='none';
+  });
+  window.addEventListener('appinstalled',()=>{
+    document.getElementById('installBtn').style.display='none';
+  });
+
+  document.addEventListener('DOMContentLoaded',()=>{ setupIcon(); setupIOS(); });
+})();
 </script>
 </body>
 </html>

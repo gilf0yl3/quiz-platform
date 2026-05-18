@@ -1,0 +1,18 @@
+{
+  "name": "2v2 Court Rotation",
+  "short_name": "2v2 Court",
+  "description": "6-player 2v2 basketball rotation — everyone partners everyone, no back-to-back rests.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0e1116",
+  "theme_color": "#e8782b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
