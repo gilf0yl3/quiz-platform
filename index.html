@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2v2 Court Rotation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116;--panel:#161b22;--panel-2:#1c232d;--line:#2a323d;
+    --ink:#eef2f6;--muted:#8b97a6;--court:#e8782b;--court-soft:#f0a85f;
+    --green:#37d27a;--red:#ef5a5a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--ink);font-family:'Barlow',sans-serif;
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 18% 0%, rgba(232,120,43,.10), transparent 45%),
+      radial-gradient(circle at 90% 100%, rgba(55,210,122,.06), transparent 40%);
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 80px}
+  header{
+    border-bottom:2px solid var(--court);padding-bottom:22px;margin-bottom:28px;
+    display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+  }
+  h1{font-family:'Anton',sans-serif;font-size:clamp(2.4rem,6vw,4.2rem);
+    letter-spacing:.02em;line-height:.92;text-transform:uppercase}
+  h1 .accent{color:var(--court);display:block}
+  .sub{color:var(--muted);font-size:.95rem;max-width:380px;letter-spacing:.02em}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px 22px 24px;margin-bottom:24px}
+  .panel h2{font-family:'Barlow Semi Condensed',sans-serif;font-weight:700;
+    text-transform:uppercase;letter-spacing:.08em;font-size:.95rem;color:var(--muted);margin-bottom:16px}
+  .roster{display:flex;flex-wrap:wrap;gap:12px}
+  .chip{position:relative;display:flex;align-items:center;gap:11px;background:var(--panel-2);
+    border:1.5px solid var(--line);border-radius:999px;padding:11px 20px 11px 16px;
+    cursor:pointer;user-select:none;transition:all .16s ease;
+    font-family:'Barlow Semi Condensed',sans-serif;font-weight:600;font-size:1.05rem}
+  .chip:hover{border-color:var(--court-soft);transform:translateY(-1px)}
+  .chip .dot{width:11px;height:11px;border-radius:50%;background:var(--red);
+    transition:background .16s ease;flex-shrink:0}
+  .chip.on{border-color:var(--court);background:rgba(232,120,43,.12)}
+  .chip.on .dot{background:var(--green)}
+  .chip input{position:absolute;opacity:0;pointer-events:none}
+  .chip .status{font-size:.72rem;color:var(--muted);font-family:'Barlow',sans-serif;font-weight:500}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-top:4px}
+  .stat{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .stat .num{font-family:'Anton',sans-serif;font-size:2.1rem;color:var(--court);line-height:1}
+  .stat .lbl{color:var(--muted);font-size:.78rem;text-transform:uppercase;
+    letter-spacing:.07em;margin-top:6px;font-weight:600}
+  .load-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .load-row{display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.95rem}
+  .load-row .name{font-family:'Barlow Semi Condensed',sans-serif;font-weight:600}
+  .load-row .v{color:var(--court-soft);font-weight:600;font-variant-numeric:tabular-nums}
+  .table-head{display:flex;align-items:baseline;justify-content:space-between;
+    margin:30px 0 14px;flex-wrap:wrap;gap:8px}
+  .table-head h2{font-family:'Anton',sans-serif;font-size:1.6rem;text-transform:uppercase;
+    letter-spacing:.02em;color:var(--ink)}
+  .table-head .hint{color:var(--muted);font-size:.85rem}
+  .table-head .hint.warn{color:var(--court-soft)}
+  .btn{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    font-family:'Barlow Semi Condensed',sans-serif;font-weight:600;font-size:.82rem;
+    text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;border-radius:8px;cursor:pointer;
+    transition:all .15s ease}
+  .btn:hover{border-color:var(--court);color:var(--court)}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  thead th{text-align:left;font-family:'Barlow Semi Condensed',sans-serif;text-transform:uppercase;
+    letter-spacing:.07em;font-size:.78rem;color:var(--muted);padding:12px 14px;
+    border-bottom:2px solid var(--line)}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:1rem}
+  tbody tr{transition:background .12s ease}
+  tbody tr:hover{background:rgba(255,255,255,.025)}
+  tbody tr.done{opacity:.42}
+  tbody tr.done .team{text-decoration:line-through}
+  .g-num{font-family:'Anton',sans-serif;color:var(--court);font-size:1.1rem;width:48px}
+  .team{font-family:'Barlow Semi Condensed',sans-serif;font-weight:600}
+  .vs{color:var(--muted);font-weight:600;padding:0 6px;font-size:.85rem}
+  .wait{color:var(--muted);font-size:.92rem}
+  .chk{width:46px;text-align:center}
+  .chk input{
+    appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:6px;
+    border:2px solid var(--line);background:var(--panel-2);cursor:pointer;
+    position:relative;transition:all .15s ease;vertical-align:middle}
+  .chk input:hover{border-color:var(--court-soft)}
+  .chk input:checked{background:var(--green);border-color:var(--green)}
+  .chk input:checked::after{content:"";position:absolute;left:6px;top:2px;width:6px;height:11px;
+    border:solid #0e1116;border-width:0 3px 3px 0;transform:rotate(45deg)}
+  .empty{text-align:center;padding:50px 20px;color:var(--muted);
+    font-family:'Barlow Semi Condensed',sans-serif;font-size:1.1rem}
+  footer{margin-top:34px;color:var(--muted);font-size:.82rem;text-align:center;line-height:1.7}
+  @media(max-width:560px){
+    .vs{display:block;padding:2px 0}
+    tbody td{padding:11px 7px;font-size:.92rem}
+    thead th{padding:10px 7px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>2v2<span class="accent">Court Rotation</span></h1>
+    <p class="sub">Tap a player off if they're a no-show. The schedule rebuilds and re-orders so nobody ever rests two games in a row.</p>
+  </header>
+
+  <div class="panel">
+    <h2>Who showed up?</h2>
+    <div class="roster" id="roster"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Session at a glance</h2>
+    <div class="stats" id="stats"></div>
+    <div style="margin-top:18px">
+      <h2 style="margin-bottom:12px">Games per player</h2>
+      <div class="load-grid" id="load"></div>
+    </div>
+  </div>
+
+  <div class="table-head">
+    <h2>The Schedule</h2>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="hint" id="hint"></span>
+      <button class="btn" id="resetBtn">Reset checks</button>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr><th class="chk">Done</th><th>#</th><th>Team A</th><th></th><th>Team B</th><th>Waiting</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <footer>
+    Built from the full set of 45 unique 2v2 matchups · 6 players · everyone partners everyone<br>
+    Filtered games are re-sequenced live so no present player rests in consecutive games.
+  </footer>
+</div>
+
+<script>
+const PLAYERS = ["Zane","Jason","Andy","Gali","Ryan","Shyn"];
+const N = {1:"Zane",2:"Jason",3:"Andy",4:"Gali",5:"Ryan",6:"Shyn"};
+const RAW = [
+ [[1,3],[4,6],[2,5]],[[1,5],[2,6],[3,4]],[[2,3],[4,5],[1,6]],[[1,6],[2,5],[3,4]],
+ [[1,4],[3,6],[2,5]],[[2,4],[3,5],[1,6]],[[1,2],[5,6],[3,4]],[[1,6],[3,4],[2,5]],
+ [[2,5],[3,4],[1,6]],[[1,3],[2,6],[4,5]],[[3,6],[4,5],[1,2]],[[1,2],[4,5],[3,6]],
+ [[1,6],[2,3],[4,5]],[[3,4],[5,6],[1,2]],[[1,4],[2,5],[3,6]],[[1,2],[3,6],[4,5]],
+ [[3,5],[4,6],[1,2]],[[1,5],[2,4],[3,6]],[[2,4],[3,6],[1,5]],[[1,6],[4,5],[2,3]],
+ [[1,5],[2,3],[4,6]],[[2,6],[3,4],[1,5]],[[1,5],[4,6],[2,3]],[[1,2],[3,5],[4,6]],
+ [[2,3],[4,6],[1,5]],[[1,4],[5,6],[2,3]],[[1,3],[2,5],[4,6]],[[1,2],[4,6],[3,5]],
+ [[1,5],[3,4],[2,6]],[[2,6],[3,5],[1,4]],[[1,4],[2,6],[3,5]],[[2,5],[3,6],[1,4]],
+ [[1,4],[3,5],[2,6]],[[1,6],[2,4],[3,5]],[[2,3],[5,6],[1,4]],[[1,3],[4,5],[2,6]],
+ [[2,6],[4,5],[1,3]],[[1,2],[3,4],[5,6]],[[1,6],[3,5],[2,4]],[[1,3],[2,4],[5,6]],
+ [[1,3],[5,6],[2,4]],[[2,4],[5,6],[1,3]],[[1,5],[3,6],[2,4]],[[2,5],[4,6],[1,3]],
+ [[1,4],[2,3],[5,6]]
+];
+const GAMES = RAW.map((g,idx) => ({
+  id:idx,
+  A:[N[g[0][0]],N[g[0][1]]],
+  B:[N[g[1][0]],N[g[1][1]]],
+  W:[N[g[2][0]],N[g[2][1]]]
+}));
+
+const present = new Set(PLAYERS);
+const completed = new Set();   // stores stable game ids
+
+/* Re-sequence so no PRESENT player rests in two consecutive games.
+   Backtracking + most-constrained heuristic + randomized restarts;
+   greedy best-effort fallback if a clean ordering can't be found. */
+function resequence(list){
+  const n = list.length;
+  if(n <= 1) return {order:list.slice(), clean:true};
+  const rest = list.map(g => g.W.filter(x => present.has(x)));
+  const disjoint = (a,b) => !a.some(x => b.includes(x));
+
+  function attempt(seed){
+    const used = new Array(n).fill(false);
+    const order = [];
+    const jit = new Array(n);
+    let steps = 0, rnd = seed;
+    const rand = () => (rnd = (rnd*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    function bt(prev){
+      if(order.length === n) return true;
+      if(++steps > 400000) return false;
+      const cands = [];
+      for(let i=0;i<n;i++){
+        if(used[i]) continue;
+        if(prev === null || disjoint(prev, rest[i])) cands.push(i);
+      }
+      if(!cands.length) return false;
+      cands.forEach(i => jit[i] = rand());
+      cands.sort((a,b)=>{
+        let ca=0, cb=0;
+        for(let j=0;j<n;j++){
+          if(used[j]||j===a||j===b) continue;
+          if(disjoint(rest[a],rest[j])) ca++;
+          if(disjoint(rest[b],rest[j])) cb++;
+        }
+        return (ca-cb) || (jit[a]-jit[b]);
+      });
+      for(const i of cands){
+        used[i]=true; order.push(i);
+        if(bt(rest[i])) return true;
+        used[i]=false; order.pop();
+      }
+      return false;
+    }
+    return bt(null) ? order : null;
+  }
+
+  for(let s=1;s<=24;s++){
+    const ord = attempt(s*7919 + 13);
+    if(ord) return {order:ord.map(i=>list[i]), clean:true};
+  }
+  const used=new Array(n).fill(false), order=[];
+  let prev=null;
+  for(let k=0;k<n;k++){
+    let best=-1,bestBad=99;
+    for(let i=0;i<n;i++){
+      if(used[i])continue;
+      const bad = (prev && !disjoint(prev,rest[i]))?1:0;
+      if(bad<bestBad){bestBad=bad;best=i;if(bad===0)break;}
+    }
+    used[best]=true;order.push(best);prev=rest[best];
+  }
+  return {order:order.map(i=>list[i]), clean:false};
+}
+
+const roster = document.getElementById('roster');
+PLAYERS.forEach(p=>{
+  const lab=document.createElement('label');
+  lab.className='chip on';
+  lab.innerHTML=`<input type="checkbox" checked data-p="${p}">
+    <span class="dot"></span><span>${p}</span><span class="status">IN</span>`;
+  const cb=lab.querySelector('input');
+  cb.addEventListener('change',()=>{
+    if(cb.checked){present.add(p);lab.classList.add('on');lab.querySelector('.status').textContent='IN';}
+    else{present.delete(p);lab.classList.remove('on');lab.querySelector('.status').textContent='OUT';}
+    render();
+  });
+  roster.appendChild(lab);
+});
+
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  completed.clear(); render();
+});
+
+function render(){
+  const playable = g => g.A.concat(g.B).every(x=>present.has(x));
+  const valid = GAMES.filter(playable);
+  const {order:seq, clean} = resequence(valid);
+
+  const counts={}; PLAYERS.forEach(p=>counts[p]=0);
+  seq.forEach(g=>g.A.concat(g.B).forEach(x=>counts[x]++));
+  const playing=[...present];
+  const doneCount = seq.filter(g=>completed.has(g.id)).length;
+
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="num">${seq.length}</div><div class="lbl">Games total</div></div>
+    <div class="stat"><div class="num">${doneCount}</div><div class="lbl">Completed</div></div>
+    <div class="stat"><div class="num">${playing.length}</div><div class="lbl">Players in</div></div>
+    <div class="stat"><div class="num">${6-playing.length}</div><div class="lbl">No-shows</div></div>`;
+
+  document.getElementById('load').innerHTML = playing.length
+    ? playing.map(p=>`<div class="load-row"><span class="name">${p}</span><span class="v">${counts[p]} games</span></div>`).join('')
+    : `<div class="load-row"><span class="name">No players selected</span></div>`;
+
+  const hint=document.getElementById('hint');
+  if(playing.length<4){
+    hint.textContent="Need at least 4 players for 2v2."; hint.className="hint warn";
+  }else if(!clean){
+    hint.textContent=`${seq.length} games · couldn't fully avoid back-to-back rests here`;
+    hint.className="hint warn";
+  }else{
+    hint.textContent=`${seq.length} of 45 games · no back-to-back rests`;
+    hint.className="hint";
+  }
+
+  const rows=document.getElementById('rows');
+  if(seq.length===0){
+    rows.innerHTML=`<tr><td colspan="6" class="empty">${
+      playing.length<4 ? "Select at least 4 players to generate games."
+      : "No games match this group."}</td></tr>`;
+    return;
+  }
+  rows.innerHTML=seq.map((g,i)=>`
+    <tr class="${completed.has(g.id)?'done':''}">
+      <td class="chk"><input type="checkbox" data-id="${g.id}" ${completed.has(g.id)?'checked':''}></td>
+      <td class="g-num">${i+1}</td>
+      <td class="team">${g.A[0]} &amp; ${g.A[1]}</td>
+      <td class="vs">vs</td>
+      <td class="team">${g.B[0]} &amp; ${g.B[1]}</td>
+      <td class="wait">${g.W.filter(x=>present.has(x)).join(', ')||'—'}</td>
+    </tr>`).join('');
+
+  rows.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const id=+cb.dataset.id;
+      if(cb.checked) completed.add(id); else completed.delete(id);
+      cb.closest('tr').classList.toggle('done',cb.checked);
+      const dc=seq.filter(g=>completed.has(g.id)).length;
+      document.querySelectorAll('.stat .num')[1].textContent=dc;
+    });
+  });
+}
+render();
+</script>
+</body>
+</html>
