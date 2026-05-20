@@ -96,6 +96,13 @@
   .chk input:checked{background:var(--green);border-color:var(--green)}
   .chk input:checked::after{content:"";position:absolute;left:6px;top:2px;width:6px;height:11px;
     border:solid #0e1116;border-width:0 3px 3px 0;transform:rotate(45deg)}
+  .drag-h{width:28px;text-align:center;padding:0 4px!important;cursor:grab;
+    touch-action:none;color:var(--line);transition:color .12s ease}
+  .drag-h:active{cursor:grabbing}
+  .drag-h:hover{color:var(--muted)}
+  tbody tr.dragging{opacity:.3;background:rgba(232,120,43,.06)}
+  tbody tr.drag-above{border-top:2px solid var(--court)}
+  tbody tr.drag-below{border-bottom:2px solid var(--court)}
   .empty{text-align:center;padding:50px 20px;color:var(--muted);
     font-family:'Barlow Semi Condensed',sans-serif;font-size:1.1rem}
   footer{margin-top:34px;color:var(--muted);font-size:.82rem;text-align:center;line-height:1.7}
@@ -151,12 +158,13 @@
     <h2>The Schedule</h2>
     <div style="display:flex;align-items:center;gap:14px">
       <span class="hint" id="hint"></span>
+      <button class="btn" id="resetOrderBtn">Reset order</button>
       <button class="btn" id="resetBtn">Reset checks</button>
     </div>
   </div>
   <table>
     <thead>
-      <tr><th class="chk">Done</th><th>#</th><th>Team A</th><th></th><th>Team B</th><th>Waiting</th></tr>
+      <tr><th class="drag-h"></th><th class="chk">Done</th><th>#</th><th>Team A</th><th></th><th>Team B</th><th>Waiting</th></tr>
     </thead>
     <tbody id="rows"></tbody>
   </table>
@@ -192,7 +200,8 @@ const GAMES = RAW.map((g,idx) => ({
 }));
 
 const present = new Set(PLAYERS);
-const completed = new Set();   // stores stable game ids
+const completed = new Set();
+let userOrder = null; // array of game IDs set by drag; null = auto-sort
 
 /* Re-sequence so no PRESENT player rests in two consecutive games.
    Backtracking + most-constrained heuristic + randomized restarts;
@@ -266,6 +275,7 @@ PLAYERS.forEach(p=>{
   cb.addEventListener('change',()=>{
     if(cb.checked){present.add(p);lab.classList.add('on');lab.querySelector('.status').textContent='IN';}
     else{present.delete(p);lab.classList.remove('on');lab.querySelector('.status').textContent='OUT';}
+    userOrder = null; // player change → reset to auto-sort
     render();
   });
   roster.appendChild(lab);
@@ -274,11 +284,36 @@ PLAYERS.forEach(p=>{
 document.getElementById('resetBtn').addEventListener('click',()=>{
   completed.clear(); render();
 });
+document.getElementById('resetOrderBtn').addEventListener('click',()=>{
+  userOrder = null; render();
+});
+
+const GRIP = `<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+  <circle cx="4" cy="2.5" r="1.4"/><circle cx="10" cy="2.5" r="1.4"/>
+  <circle cx="4" cy="7"   r="1.4"/><circle cx="10" cy="7"   r="1.4"/>
+  <circle cx="4" cy="11.5" r="1.4"/><circle cx="10" cy="11.5" r="1.4"/>
+</svg>`;
+
+function getSeq(valid){
+  if(!userOrder) return resequence(valid);
+  const validSet = new Set(valid.map(g=>g.id));
+  const seen = new Set(userOrder);
+  const ordered = userOrder.filter(id=>validSet.has(id)).map(id=>GAMES[id]);
+  // Append any newly-valid games not yet in user order
+  valid.forEach(g=>{ if(!seen.has(g.id)) ordered.push(g); });
+  return {order:ordered, clean:false, manual:true};
+}
+
+function renumber(tbody){
+  tbody.querySelectorAll('tr[data-gid]').forEach((tr,i)=>{
+    tr.querySelector('.g-num').textContent = i+1;
+  });
+}
 
 function render(){
   const playable = g => g.A.concat(g.B).every(x=>present.has(x));
   const valid = GAMES.filter(playable);
-  const {order:seq, clean} = resequence(valid);
+  const {order:seq, clean, manual} = getSeq(valid);
 
   const counts={}; PLAYERS.forEach(p=>counts[p]=0);
   seq.forEach(g=>g.A.concat(g.B).forEach(x=>counts[x]++));
@@ -298,6 +333,8 @@ function render(){
   const hint=document.getElementById('hint');
   if(playing.length<4){
     hint.textContent="Need at least 4 players for 2v2."; hint.className="hint warn";
+  }else if(manual){
+    hint.textContent=`${seq.length} games · custom order`;  hint.className="hint";
   }else if(!clean){
     hint.textContent=`${seq.length} games · couldn't fully avoid back-to-back rests here`;
     hint.className="hint warn";
@@ -306,15 +343,16 @@ function render(){
     hint.className="hint";
   }
 
-  const rows=document.getElementById('rows');
+  const tbody=document.getElementById('rows');
   if(seq.length===0){
-    rows.innerHTML=`<tr><td colspan="6" class="empty">${
+    tbody.innerHTML=`<tr><td colspan="7" class="empty">${
       playing.length<4 ? "Select at least 4 players to generate games."
       : "No games match this group."}</td></tr>`;
     return;
   }
-  rows.innerHTML=seq.map((g,i)=>`
-    <tr class="${completed.has(g.id)?'done':''}">
+  tbody.innerHTML=seq.map((g,i)=>`
+    <tr data-gid="${g.id}" class="${completed.has(g.id)?'done':''}">
+      <td class="drag-h">${GRIP}</td>
       <td class="chk"><input type="checkbox" data-id="${g.id}" ${completed.has(g.id)?'checked':''}></td>
       <td class="g-num">${i+1}</td>
       <td class="team">${g.A[0]} &amp; ${g.A[1]}</td>
@@ -323,7 +361,7 @@ function render(){
       <td class="wait">${g.W.filter(x=>present.has(x)).join(', ')||'—'}</td>
     </tr>`).join('');
 
-  rows.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+  tbody.querySelectorAll('input[type=checkbox]').forEach(cb=>{
     cb.addEventListener('change',()=>{
       const id=+cb.dataset.id;
       if(cb.checked) completed.add(id); else completed.delete(id);
@@ -332,7 +370,66 @@ function render(){
       document.querySelectorAll('.stat .num')[1].textContent=dc;
     });
   });
+
+  initDragSort(tbody);
 }
+
+function initDragSort(tbody){
+  let dragging = null;
+
+  tbody.addEventListener('pointerdown', e=>{
+    const handle = e.target.closest('.drag-h');
+    if(!handle) return;
+    const row = handle.closest('tr[data-gid]');
+    if(!row) return;
+    e.preventDefault();
+    dragging = row;
+    dragging.classList.add('dragging');
+    document.addEventListener('pointermove', onMove, {passive:false});
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  });
+
+  function onMove(e){
+    if(!dragging) return;
+    e.preventDefault();
+    // Find row under pointer by comparing clientY to each row's bounding rect
+    const rows = [...tbody.querySelectorAll('tr[data-gid]')];
+    let target = null, insertBefore = false;
+    for(const r of rows){
+      if(r === dragging) continue;
+      const rect = r.getBoundingClientRect();
+      if(e.clientY >= rect.top && e.clientY <= rect.bottom){
+        target = r;
+        insertBefore = e.clientY < rect.top + rect.height / 2;
+        break;
+      }
+    }
+    rows.forEach(r=>r.classList.remove('drag-above','drag-below'));
+    if(target){
+      target.classList.add(insertBefore ? 'drag-above' : 'drag-below');
+      if(insertBefore) tbody.insertBefore(dragging, target);
+      else             tbody.insertBefore(dragging, target.nextSibling);
+    }
+  }
+
+  function onUp(){
+    if(!dragging) return;
+    dragging.classList.remove('dragging');
+    tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-above','drag-below'));
+    userOrder = [...tbody.querySelectorAll('tr[data-gid]')].map(r=>+r.dataset.gid);
+    renumber(tbody);
+    // Update hint to show custom order
+    const hint=document.getElementById('hint');
+    hint.textContent=`${userOrder.length} games · custom order`;
+    hint.className='hint';
+    dragging = null;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+  }
+}
+
 render();
 
 /* ── PWA: service worker + install prompt ── */
